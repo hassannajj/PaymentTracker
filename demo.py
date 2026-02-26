@@ -104,6 +104,7 @@ def reset_transaction_data():
     con.commit()
 
 
+# Contains all transactions
 class Ledger:
     def __init__(self):
         self.transactions = []
@@ -116,6 +117,8 @@ class Ledger:
         populate_transaction_data(transaction)
         self._refresh_transactions()
 
+    # TODO: Maybe optimize this by caching balances in Customer table and updating on each transaction instead of calculating from scratch each time
+    # For now, this is simpler and good enough for demo purposes, but if we had a large number of transactions this could get slow
     def calculate_balance(self, customer_id):
         balance = 0
         for tr in self.transactions:
@@ -136,37 +139,44 @@ class Displayer:
     def customers(self, customers):
         for c in customers:
             print(f"ID: {c.id}, Name: {c.name}, Rate: {c.rate}, Balance: {self.ledger.calculate_balance(c.id)}")
+        print()
 
     def all_transactions(self):
         for tr in self._sorted_transactions():
             print(f"Customer ID: {tr.customer_id}, Transaction Type: {tr.transaction_type}, Amount: {tr.amount}, Date: {tr.date}, Notes: {tr.notes}")
+        print()
 
     def all_charges(self):
         for tr in self._sorted_transactions():
             if tr.transaction_type == "Charge":
                 print(f"Customer ID: {tr.customer_id}, Amount: {tr.amount}, Date: {tr.date}, Notes: {tr.notes}")
-    
+        print()
+
     def all_payments(self):
         for tr in self._sorted_transactions():
             if tr.transaction_type == "Payment":
                 print(f"Customer ID: {tr.customer_id}, Amount: {tr.amount}, Date: {tr.date}, Notes: {tr.notes}")
+        print()
 
     def specific_transactions(self, customer_id):
         specific_transactions = get_specific_transaction_data(customer_id)
         for tr in sorted(specific_transactions, key=lambda x: x.date):
             print(f"Customer ID: {tr.customer_id}, Transaction Type: {tr.transaction_type}, Amount: {tr.amount}, Date: {tr.date}, Notes: {tr.notes}")
+        print()
 
     def specific_charges(self, customer_id):
         specific_transactions = get_specific_transaction_data(customer_id)
         for tr in sorted(specific_transactions, key=lambda x: x.date):
             if tr.transaction_type == "Charge":
                 print(f"Customer ID: {tr.customer_id}, Amount: {tr.amount}, Date: {tr.date}, Notes: {tr.notes}")
+        print()
 
     def specific_payments(self, customer_id):
         specific_transactions = get_specific_transaction_data(customer_id)
         for tr in sorted(specific_transactions, key=lambda x: x.date):
             if tr.transaction_type == "Payment":
                 print(f"Customer ID: {tr.customer_id}, Amount: {tr.amount}, Date: {tr.date}, Notes: {tr.notes}")
+        print()
 
 # CLI
 # First, put date
@@ -185,8 +195,9 @@ def cli(ledger, display):
     while True:
         print("Select an option:")
         print("0) Exit")
+        print("A) Add Customer")
+        print("M) Monthly Service Charge")
         print("1) Charge")
-        print("1.2) Monthly Service Charge")
         print("2) Payment")
         print("3) Show Customers")
         print("4) Show Transactions")
@@ -196,7 +207,21 @@ def cli(ledger, display):
         if option == "0":
             print("Exiting CLI. Goodbye!")
             break
-        if option == "1.2":
+        if option == "A":
+            print("Enter new customer ID:")
+            if not input().strip():
+                print("Customer ID cannot be blank.")
+                continue
+            customer_id = int(input().strip())
+            print("Enter new customer name:")
+            name = input().strip()
+            print("Enter new customer monthly rate:")
+            rate = int(input().strip())
+            new_customer = Customer(customer_id, name, rate)
+            populate_customer_data(new_customer)
+            print(f"Customer {name} added with ID {customer_id} and monthly rate {rate}.")
+            continue
+        if option == "M":
             customers = get_all_customer_data()
             for c in customers:
                 transaction = Transaction(c.id, "Charge", c.rate, date, "Monthly Service Charge")
@@ -212,6 +237,7 @@ def cli(ledger, display):
             notes = input().strip()
             transaction_type = "Charge" if option == "1" else "Payment"
             transaction = Transaction(customer_id, transaction_type, amount, date, notes)
+
             ledger.record_transaction(transaction)
             print(f"{transaction_type} recorded for Customer ID {customer_id}.")
             continue
