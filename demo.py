@@ -52,6 +52,7 @@ def get_all_customer_data() -> list[Customer]:
     sql_customer_data = cur.execute("SELECT id, name, rate FROM customers").fetchall()
     customers = [Customer(id, name, rate) for id, name, rate in sql_customer_data]
     return customers
+
 def get_specific_customer_data(customer_id) -> Customer:
     sql_customer_data = cur.execute("SELECT id, name, rate FROM customers WHERE id = ?", (customer_id,)).fetchone()
     if sql_customer_data:
