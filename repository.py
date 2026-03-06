@@ -9,7 +9,8 @@ class Customer:
         self.rate = rate
 
 class Transaction:
-    def __init__(self, customer_id, transaction_type, amount, date, notes):
+    def __init__(self, id, customer_id, transaction_type, amount, date, notes):
+        self.id = id # primary key for transactions
         self.customer_id = customer_id
         self.transaction_type = transaction_type # type: "Charge" or "Payment"
         self.amount = amount
@@ -25,6 +26,26 @@ class Transaction:
             except ValueError:
                 return datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
         raise TypeError("Invalid date type")
+
+# ---- Customers ----
+def create_customers_table():
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            rate INTEGER
+        )
+        """)
+    db_conn.commit()
+
+def reset_customer_data():
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("DROP TABLE IF EXISTS customers")
+    create_customers_table()
+    db_conn.commit()
 
 def get_all_customers():
     db_conn = db.get_db()
@@ -46,17 +67,66 @@ def get_specific_customer(customer_id) -> Customer:
     print(f"No customer found with ID {customer_id}.")
     return None
 
+def add_customer(name, rate):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("INSERT INTO customers (name, rate) VALUES (?, ?)", (name, rate))
+    db_conn.commit()
+
+
+# ---- Transactions ----
+def create_transactions_table():
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS transactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            customer_id INTEGER,
+            transaction_type TEXT,
+            amount INTEGER,
+            date TEXT,
+            notes TEXT,
+            FOREIGN KEY (customer_id) REFERENCES customers (id)
+        )
+        """)
+    db_conn.commit()
+
+def reset_transaction_data():
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("DROP TABLE IF EXISTS transactions")
+    create_transactions_table()
+    db_conn.commit()
+
 def get_all_transactions():
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT customer_id, transaction_type, amount, date, notes FROM transactions")
+    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes FROM transactions")
     rows = cursor.fetchall()
-    return [Transaction(row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"]) for row in rows]
+    return [Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"]) for row in rows]
 
 def get_transactions_for_customer(customer_id):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT customer_id, transaction_type, amount, date, notes FROM transactions WHERE customer_id = ?", (customer_id,))
+    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes FROM transactions WHERE customer_id = ?", (customer_id,))
     rows = cursor.fetchall()
-    return [Transaction(row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"]) for row in rows]
+    return [Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"]) for row in rows]
 
+def get_specific_transaction(transaction_id):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes FROM transactions WHERE id = ?", (transaction_id,))
+    row = cursor.fetchone()
+    if row:
+        return Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"])
+    
+    # Else
+    print(f"No transaction found with ID {transaction_id}.")
+    return None
+
+def add_transaction(transaction):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("INSERT INTO transactions (customer_id, transaction_type, amount, date, notes) VALUES (?, ?, ?, ?, ?)", 
+                   (transaction.customer_id, transaction.transaction_type, transaction.amount, transaction.date.strftime("%Y-%m-%d %H:%M:%S"), transaction.notes))
+    db_conn.commit()

@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, render_template, redirect, url_for
 from markupsafe import escape
 
 import demo
@@ -15,35 +15,41 @@ def close_connection(exception):
 
 @app.route('/')
 def index():
-    return 'Index Page'
+    return render_template('index.html')
 
-@app.route("/hello")
-def hello_world():
-    name = request.args.get("name", "Flask")
-
-    return f"<p>Hello, {escape(name)}!</p>"
 
 @app.route('/customers')
 def show_customers():
     customers = repository.get_all_customers()
-    return '<br>'.join([f'Customer {c.id}: {c.name} {c.rate}' for c in customers])
+    return render_template('customer_list.html', customers=customers)
 
-@app.route('/customer/<int:id>')
-def show_customer_profile(id: int):
+@app.route('/customers/<int:id>')
+def show_customer(id: int):
     customer = repository.get_specific_customer(id)
     if not customer:
         return {"error": f"No customer found with ID {id}"}, 404
     transactions = repository.get_transactions_for_customer(id)
+    return render_template('customer.html', customer=customer, transactions=transactions)
 
-    display = f'Customer {customer.id}: {customer.name} {customer.rate}<br><br>'
-    if transactions:
-        display += 'Transactions:<br>'
-        display += '<br>'.join([f'{t.transaction_type} {t.amount} on {t.date} ({t.notes})' for t in transactions])
-    else:
-        display += 'No transactions found for this customer.'
-    return display
+@app.route('/add_customer', methods=['GET', 'POST'])
+def add_customer():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        rate = request.form.get('rate')
+        repository.add_customer(name, rate)
+        return redirect(url_for('show_customers'))
+    
+    # Else, GET request
+    return render_template('add_customer.html')
 
 @app.route('/transactions')
 def show_transactions():
     transactions = repository.get_all_transactions()
-    return '<br>'.join([f'Transaction for Customer {t.customer_id}: {t.transaction_type} {t.amount} on {t.date} ({t.notes})' for t in transactions])
+    return render_template('transaction_list.html', transactions=transactions)
+
+@app.route('/transactions/<int:id>')
+def show_transaction(id: int):
+    transaction = repository.get_specific_transaction(id)
+    if not transaction:
+        return {"error": f"No transaction found with ID {id}"}, 404
+    return f'Transaction {transaction.id}: Customer {transaction.customer_id} {transaction.transaction_type} {transaction.amount} on {transaction.date} ({transaction.notes})'

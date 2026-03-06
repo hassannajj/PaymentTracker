@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Customers</title>
+</head>
+<body>
+    <a href="/">Home</a>
+    <h1>Customers</h1>
+    <ul>
+        {% for customer in customers %}
+
+            <li>
+                <a href="/customers/{{ customer.id }}">
+                {{ customer.name }} - Rate: {{ customer.rate }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Customer</title>
+</head>
+<body>
+    <a href="/">Home</a>
+    <h1>Customer: {{ customer.name }}</h1>
+    <p>Rate: {{ customer.rate }}</p>
+    <h2>Transactions</h2>
+    <ul>
+        {% for transaction in transactions %}
+            <li>{{ transaction.transaction_type }} {{ transaction.amount }} on {{ transaction.date }} ({{
+    transaction.notes }})</li>
+        {% endfor %}
+    </ul>   
+</body>
+</html>
