@@ -7,6 +7,15 @@ class Customer:
         self.id = id
         self.name = name
         self.rate = rate
+    
+    def calculate_balance(self, transactions):
+        balance = 0
+        for tr in transactions:
+            if tr.transaction_type.lower() == "charge":
+                balance += tr.amount
+            elif tr.transaction_type.lower() == "payment":
+                balance -= tr.amount
+        return balance
 
 class Transaction:
     def __init__(self, id, customer_id, transaction_type, amount, date, notes):

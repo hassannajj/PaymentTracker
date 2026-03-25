@@ -29,7 +29,8 @@ def show_customer(id: int):
     if not customer:
         return {"error": f"No customer found with ID {id}"}, 404
     transactions = repository.get_transactions_for_customer(id)
-    return render_template('customer.html', customer=customer, transactions=transactions)
+    balance = customer.calculate_balance(transactions=transactions)
+    return render_template('customer.html', customer=customer, transactions=transactions, balance=balance)
 
 @app.route('/add_customer', methods=['GET', 'POST'])
 def add_customer():
