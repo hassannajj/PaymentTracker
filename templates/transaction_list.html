@@ -6,9 +6,29 @@
 <body>
     <a href="/">Home</a>
     <h1>Transactions</h1>
-    <ul>
-        {% for transaction in transactions %}
-            <li>{{ transaction.customer_id}} - Amount: {{ transaction.amount }} - Date: {{ transaction.date }}</li>
-        {% endfor %}
-    </ul>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Customer ID</th>
+                <th>Transaction Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Notes</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.customer_id }}</td>
+                <td>{{ transaction.transaction_type }}</td>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.notes }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </html>

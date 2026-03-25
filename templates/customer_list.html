@@ -6,15 +6,24 @@
 <body>
     <a href="/">Home</a>
     <h1>Customers</h1>
-    <ul>
-        {% for customer in customers %}
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Rate</th>
+            </tr>
+        </thead>
 
-            <li>
-                <a href="/customers/{{ customer.id }}">
-                {{ customer.name }} - Rate: {{ customer.rate }}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.id }}</td>
+                <td><a href="/customers/{{ customer.id }}">{{ customer.name }}</a></td>
+                <td>{{ customer.rate }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+ </body>
 </html>

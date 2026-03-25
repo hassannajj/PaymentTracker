@@ -36,11 +36,17 @@ def add_customer():
     if request.method == 'POST':
         name = request.form.get('name')
         rate = request.form.get('rate')
-        repository.add_customer(name, rate)
+        customer = repository.Customer(
+            id=None,
+            name=name,
+            rate=rate
+        )
+        repository.add_customer(customer)
         return redirect(url_for('show_customers'))
     
     # Else, GET request
     return render_template('add_customer.html')
+
 
 @app.route('/transactions')
 def show_transactions():
@@ -53,3 +59,26 @@ def show_transaction(id: int):
     if not transaction:
         return {"error": f"No transaction found with ID {id}"}, 404
     return f'Transaction {transaction.id}: Customer {transaction.customer_id} {transaction.transaction_type} {transaction.amount} on {transaction.date} ({transaction.notes})'
+
+@app.route('/add_transaction', methods=['GET', 'POST'])
+def add_transaction():
+    if request.method == 'POST':
+        customer_id = request.form.get('customer_id')
+        transaction_type = request.form.get('transaction_type')
+        amount = request.form.get('amount')
+        date = request.form.get('date')
+        notes = request.form.get('notes')
+        transaction = repository.Transaction(
+            id=None,
+            customer_id=customer_id,
+            transaction_type=transaction_type,
+            amount=amount,
+            date=date,
+            notes=notes
+        )        
+        repository.add_transaction(transaction)
+        return redirect(url_for('show_transactions'))
+
+    # Else, GET request
+    customers = repository.get_all_customers()
+    return render_template('add_transaction.html', customers=customers)

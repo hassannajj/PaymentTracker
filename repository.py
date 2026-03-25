@@ -67,10 +67,10 @@ def get_specific_customer(customer_id) -> Customer:
     print(f"No customer found with ID {customer_id}.")
     return None
 
-def add_customer(name, rate):
+def add_customer(customer: Customer):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("INSERT INTO customers (name, rate) VALUES (?, ?)", (name, rate))
+    cursor.execute("INSERT INTO customers (name, rate) VALUES (?, ?)", (customer.name, customer.rate))
     db_conn.commit()
 
 
@@ -124,7 +124,7 @@ def get_specific_transaction(transaction_id):
     print(f"No transaction found with ID {transaction_id}.")
     return None
 
-def add_transaction(transaction):
+def add_transaction(transaction: Transaction):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
     cursor.execute("INSERT INTO transactions (customer_id, transaction_type, amount, date, notes) VALUES (?, ?, ?, ?, ?)", 
