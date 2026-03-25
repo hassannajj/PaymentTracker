@@ -76,6 +76,18 @@ def get_specific_customer(customer_id) -> Customer:
     print(f"No customer found with ID {customer_id}.")
     return None
 
+def get_all_balances():
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("""
+        SELECT customer_id,
+               SUM(CASE WHEN LOWER(transaction_type) = 'charge' THEN amount ELSE -amount END) as balance
+        FROM transactions
+        GROUP BY customer_id
+    """)
+    rows = cursor.fetchall()
+    return {row["customer_id"]: row["balance"] for row in rows}
+
 def add_customer(customer: Customer):
     db_conn = db.get_db()
     cursor = db_conn.cursor()

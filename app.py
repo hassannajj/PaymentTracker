@@ -21,7 +21,8 @@ def index():
 @app.route('/customers')
 def show_customers():
     customers = repository.get_all_customers()
-    return render_template('customer_list.html', customers=customers)
+    balances = repository.get_all_balances()
+    return render_template('customer_list.html', customers=customers, balances=balances)
 
 @app.route('/customers/<int:id>')
 def show_customer(id: int):
