@@ -84,3 +84,23 @@ def add_transaction():
     # Else, GET request
     customers = repository.get_all_customers()
     return render_template('add_transaction.html', customers=customers)
+
+@app.route('/add_monthly_charges', methods=['POST', 'GET'])
+def add_monthly_charges():
+    if request.method == 'POST':
+        date = request.form.get('date')
+        customers = repository.get_all_customers()
+        for customer in customers:
+            transaction = repository.Transaction(
+                id=None,
+                customer_id=customer.id,
+                transaction_type="Charge",
+                amount=customer.rate,
+                date=date,
+                notes="Monthly charge"
+            )
+            repository.add_transaction(transaction)
+        return redirect(url_for('show_transactions'))
+
+    # Else, GET request
+    return render_template('add_monthly_charges.html')
