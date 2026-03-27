@@ -145,6 +145,19 @@ def get_specific_transaction(transaction_id):
     print(f"No transaction found with ID {transaction_id}.")
     return None
 
+def batch_insert_transactions(transactions: list):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.executemany(
+        "INSERT INTO transactions (customer_id, transaction_type, amount, date, notes) VALUES (?, ?, ?, ?, ?)",
+        [
+            (t.customer_id, t.transaction_type, t.amount,
+             t.date.strftime("%Y-%m-%d %H:%M:%S"), t.notes)
+            for t in transactions
+        ]
+    )
+    db_conn.commit()
+
 def add_transaction(transaction: Transaction):
     db_conn = db.get_db()
     cursor = db_conn.cursor()

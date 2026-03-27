@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Review Checks</title>
+</head>
+<body>
+    <a href="/">Home</a>
+    <h1>Review Extracted Checks</h1>
+    <p>Review and edit the extracted payments below. Check "Remove" for any entries you don't want to add.</p>
+    <form method="post" action="/commit_checks">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Remove</th>
+                    <th>Payer (from check)</th>
+                    <th>Customer</th>
+                    <th>Amount ($)</th>
+                    <th>Date</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for check in checks %}
+                <tr>
+                    <td><input type="checkbox" name="delete_{{ loop.index0 }}" value="on"></td>
+                    <td>{{ check.payer_name }}</td>
+                    <td>
+                        <select name="customer_id_{{ loop.index0 }}" required>
+                            <option value="" disabled {% if check.customer_id is none %}selected{% endif %}>-- select customer --</option>
+                            {% for customer in customers %}
+                            <option value="{{ customer.id }}" {% if customer.id == check.customer_id %}selected{% endif %}>
+                                {{ customer.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" step="0.01" name="amount_{{ loop.index0 }}" value="{{ check.amount }}" required></td>
+                    <td><input type="date" name="date_{{ loop.index0 }}" value="{{ check.date if check.date else today }}" required></td>
+                    <td><input type="text" name="notes_{{ loop.index0 }}" value="{{ check.notes }}"></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <input type="submit" value="Commit All Payments">
+        &nbsp;
+        <a href="/process_checks">Cancel — Upload New Checks</a>
+    </form>
+</body>
+</html>

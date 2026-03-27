@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Process Checks</title>
+</head>
+<body>
+    <a href="/">Home</a>
+    <h1>Process Checks (AI)</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p style="color: red;">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <form method="post" enctype="multipart/form-data">
+        <label for="checks">Select check images or PDFs:</label><br><br>
+        <input type="file" id="checks" name="checks" multiple accept=".jpg,.jpeg,.png,.pdf" required><br><br>
+        <p>Processing may take several seconds depending on the number of checks.</p>
+        <input type="submit" value="Extract Checks with AI">
+    </form>
+</body>
+</html>
