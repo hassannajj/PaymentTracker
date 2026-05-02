@@ -2,7 +2,7 @@
 
 ## High Priority
 - [ ] Statement generation — per-customer statement view showing period, starting balance, charges, payments, ending balance
-- [ ] DB auto-initialization on first run — tables are not created automatically after removing demo.py/test.py
+- [x] DB auto-initialization on first run — tables are not created automatically after removing demo.py/test.py
 - [ ] Sort transactions chronologically on both the transactions page and customer profile page
 
 ## UI / Navigation

@@ -10,6 +10,10 @@ import check_processor
 app = Flask(__name__)
 app.secret_key = 'dev-secret-change-in-production'
 
+with app.app_context():
+    repository.create_customers_table()
+    repository.create_transactions_table()
+
 
 @app.teardown_appcontext
 def close_connection(exception):
