@@ -158,6 +158,21 @@ def batch_insert_transactions(transactions: list):
     )
     db_conn.commit()
 
+def delete_transaction(transaction_id: int):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("DELETE FROM transactions WHERE id=?", (transaction_id,))
+    db_conn.commit()
+
+def update_transaction(transaction_id: int, amount: float, date: str, notes: str):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute(
+        "UPDATE transactions SET amount=?, date=?, notes=? WHERE id=?",
+        (amount, date, notes, transaction_id)
+    )
+    db_conn.commit()
+
 def add_transaction(transaction: Transaction):
     db_conn = db.get_db()
     cursor = db_conn.cursor()

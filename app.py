@@ -2,7 +2,6 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 from markupsafe import escape
 from datetime import datetime
 
-import demo
 import db
 import repository
 import check_processor
@@ -64,6 +63,29 @@ def show_transaction(id: int):
     if not transaction:
         return {"error": f"No transaction found with ID {id}"}, 404
     return f'Transaction {transaction.id}: Customer {transaction.customer_id} {transaction.transaction_type} {transaction.amount} on {transaction.date} ({transaction.notes})'
+
+@app.route('/transactions/<int:id>', methods=['DELETE'])
+def delete_transaction(id: int):
+    transaction = repository.get_specific_transaction(id)
+    if not transaction:
+        return {"error": f"No transaction found with ID {id}"}, 404
+    repository.delete_transaction(id)
+    return {}, 204
+
+@app.route('/transactions/<int:id>', methods=['PATCH'])
+def update_transaction(id: int):
+    transaction = repository.get_specific_transaction(id)
+    if not transaction:
+        return {"error": f"No transaction found with ID {id}"}, 404
+    data = request.get_json()
+    try:
+        amount = float(data['amount'])
+        date = data['date']
+        notes = data.get('notes', '')
+    except (KeyError, ValueError) as e:
+        return {"error": f"Invalid data: {e}"}, 400
+    repository.update_transaction(id, amount, date, notes)
+    return {"id": id, "amount": amount, "date": date, "notes": notes}
 
 @app.route('/add_transaction', methods=['GET', 'POST'])
 def add_transaction():
