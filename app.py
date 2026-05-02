@@ -90,10 +90,32 @@ def add_transaction():
 
 @app.route('/process_checks', methods=['GET'])
 def process_checks_form():
-    return render_template('upload_checks.html')
+    customers = repository.get_all_customers()
+    return render_template('upload_checks.html', customers=customers)
 
 @app.route('/process_checks', methods=['POST'])
 def process_checks():
+    # If manually entered check data
+    if 'manual_check' in request.form:
+        customer_id = request.form.get('customer_id')
+        check_number = request.form.get('check_id', '')
+        amount = request.form.get('amount')
+        payer_name = request.form.get('customer_search', '')
+        check = {
+            'payer_name': payer_name,
+            'customer_id': int(customer_id) if customer_id else None,
+            'amount': float(amount) if amount else None,
+            'check_number': check_number,
+            'date': None,
+            'memo': None,
+            'notes': f'Check #{check_number}' if check_number else '',
+        }
+        pending = session.get('pending_checks', [])
+        pending.append(check)
+        session['pending_checks'] = pending
+        return redirect(url_for('review_checks'))
+
+    # If file was uploaded
     files = request.files.getlist('checks')
     if not files or all(f.filename == '' for f in files):
         flash('No files selected.')

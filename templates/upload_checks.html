@@ -2,10 +2,41 @@
 <html lang="en">
 <head>
     <title>Process Checks</title>
+    <style>
+        .section {
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            max-width: 480px;
+        }
+        .section h2 {
+            margin-top: 0;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 480px;
+            color: #888;
+            font-weight: bold;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-top: 1px solid #ccc;
+        }
+        label {
+            display: inline-block;
+            width: 80px;
+        }
+    </style>
 </head>
 <body>
     <a href="/">Home</a>
-    <h1>Process Checks (AI)</h1>
+    <h1>Process Checks</h1>
+
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
@@ -13,11 +44,67 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <form method="post" enctype="multipart/form-data">
-        <label for="checks">Select check images or PDFs:</label><br><br>
-        <input type="file" id="checks" name="checks" multiple accept=".jpg,.jpeg,.png,.pdf" required><br><br>
-        <p>Processing may take several seconds depending on the number of checks.</p>
-        <input type="submit" value="Extract Checks with AI">
-    </form>
+
+    <div class="section">
+        <h2>Enter manually</h2>
+        <form id="manual-form" method="post">
+            <p>
+                <label for="check_id">Check #</label>
+                <input type="number" id="check_id" name="check_id" required>
+            </p>
+            <p>
+                <label for="customer_search">Customer</label>
+                <input type="text" id="customer_search" name="customer_search"
+                    placeholder="Search by name..."
+                    list="list_of_customers" autocomplete="off" required>
+            </p>
+            <input type="hidden" id="customer_id" name="customer_id">
+            <datalist id="list_of_customers">
+                {% for customer in customers %}
+                <option value="{{ customer.name }}" data-id="{{ customer.id }}">
+                {% endfor %}
+            </datalist>
+            <p>
+                <label for="amount">Amount ($)</label>
+                <input type="number" step="0.01" id="amount" name="amount" required>
+            </p>
+            <input type="submit" name="manual_check" value="Add Check">
+        </form>
+    </div>
+
+    <div class="divider">OR</div>
+
+    <div class="section">
+        <h2>Upload check images / PDFs</h2>
+        <form method="post" enctype="multipart/form-data">
+            <input type="file" id="checks" name="checks" multiple accept=".jpg,.jpeg,.png,.pdf" required><br><br>
+            <small>Supports JPG, PNG, PDF. Multiple files at once for batch processing.</small><br><br>
+            <input type="submit" value="Extract Checks with AI">
+        </form>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('customer_search');
+        const customerIdInput = document.getElementById('customer_id');
+        const datalist = document.getElementById('list_of_customers');
+
+        searchInput.addEventListener('input', function () {
+            const val = this.value;
+            customerIdInput.value = '';
+            for (const opt of datalist.options) {
+                if (opt.value === val) {
+                    customerIdInput.value = opt.getAttribute('data-id');
+                    break;
+                }
+            }
+        });
+
+        document.getElementById('manual-form').addEventListener('submit', function (e) {
+            if (!customerIdInput.value) {
+                e.preventDefault();
+                alert('Please select a customer from the list.');
+            }
+        });
+    </script>
 </body>
 </html>
