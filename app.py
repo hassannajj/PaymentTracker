@@ -256,8 +256,11 @@ def show_statements():
     for customer in customers:
         data = repository.get_statement_data(customer.id, year, month)
         statements.append({"customer": customer, "data": data})
+    import calendar as cal
+    month_name = cal.month_name[month]
     return render_template('statements.html', statements=statements,
-                           month_str=month_str, year=year, month=month)
+                           month_str=month_str, year=year, month=month,
+                           month_name=month_name)
 
 @app.route('/customers/<int:id>/statement')
 def show_customer_statement(id: int):

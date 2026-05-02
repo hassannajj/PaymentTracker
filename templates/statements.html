@@ -8,6 +8,16 @@
     th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ddd; }
     th { background: #f4f4f4; }
     .amount { text-align: right; }
+
+    /* Print-only full statements */
+    .print-only { display: none; }
+    @media print {
+        .print-only { display: block; }
+        .print-page h2 { margin-bottom: 4px; }
+        .print-page .period { color: #555; margin-top: 0; font-size: 0.95em; }
+        .print-page table { font-size: 0.9em; }
+        .print-page .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
+    }
 </style>
 {% endblock %}
 
@@ -18,9 +28,12 @@
     <label for="month-picker">Month:</label>
     <input type="month" id="month-picker" value="{{ month_str }}">
     <button onclick="goToMonth()">Go</button>
+    &nbsp;&nbsp;
+    <button onclick="window.print()">Print All</button>
 </div>
 
-<table>
+{# Screen: summary table #}
+<table class="no-print">
     <thead>
         <tr>
             <th>Customer</th>
@@ -38,6 +51,59 @@
         {% endfor %}
     </tbody>
 </table>
+
+{# Print: one full statement per page #}
+<div class="print-only">
+    {% for s in statements %}
+    <div class="print-page">
+        <h2>{{ s.customer.name }}</h2>
+        <p class="period">Statement for {{ month_name }} {{ year }} &nbsp;|&nbsp; Rate: ${{ s.customer.rate }}/month</p>
+
+        <table class="summary-table">
+            <tr><td>Starting balance</td><td class="amount">${{ "%.2f"|format(s.data.starting_balance) }}</td></tr>
+            <tr><td>Charges this month</td><td class="amount">+${{ "%.2f"|format(s.data.total_charges) }}</td></tr>
+            <tr><td>Payments this month</td><td class="amount">-${{ "%.2f"|format(s.data.total_payments) }}</td></tr>
+            <tr><td>Ending balance</td><td class="amount">${{ "%.2f"|format(s.data.ending_balance) }}</td></tr>
+        </table>
+
+        {% if s.data.charges %}
+        <p><strong>Charges</strong></p>
+        <table>
+            <thead><tr><th>Date</th><th>Notes</th><th class="amount">Amount</th></tr></thead>
+            <tbody>
+                {% for t in s.data.charges %}
+                <tr>
+                    <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ t.notes }}</td>
+                    <td class="amount">${{ "%.2f"|format(t.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if s.data.payments %}
+        <p><strong>Payments</strong></p>
+        <table>
+            <thead><tr><th>Date</th><th>Notes</th><th class="amount">Amount</th></tr></thead>
+            <tbody>
+                {% for t in s.data.payments %}
+                <tr>
+                    <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ t.notes }}</td>
+                    <td class="amount">${{ "%.2f"|format(t.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if not s.data.charges and not s.data.payments %}
+        <p>No transactions this month.</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
 {% endblock %}
 
 {% block scripts %}
