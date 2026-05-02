@@ -202,25 +202,46 @@ def commit_checks():
     session.pop('pending_checks', None)
     return redirect(url_for('show_transactions'))
 
-@app.route('/add_monthly_charges', methods=['POST', 'GET'])
-def add_monthly_charges():
-    if request.method == 'POST':
-        date = request.form.get('date')
-        customers = repository.get_all_customers()
-        for customer in customers:
-            transaction = repository.Transaction(
-                id=None,
-                customer_id=customer.id,
-                transaction_type="Charge",
-                amount=customer.rate,
-                date=date,
-                notes="Monthly charge"
-            )
-            repository.add_transaction(transaction)
+@app.route('/add_charge', methods=['GET'])
+def add_charge_form():
+    customers = repository.get_all_customers()
+    return render_template('add_charge.html', customers=customers)
+
+@app.route('/add_charge', methods=['POST'])
+def add_charge():
+    # Extra charge — single customer
+    if 'extra_charge' in request.form:
+        customer_id = request.form.get('customer_id_extra')
+        amount = request.form.get('amount_extra')
+        date = request.form.get('date_extra')
+        notes = request.form.get('notes_extra', '')
+        transaction = repository.Transaction(
+            id=None,
+            customer_id=int(customer_id),
+            transaction_type='Charge',
+            amount=float(amount),
+            date=date,
+            notes=notes
+        )
+        repository.add_transaction(transaction)
         return redirect(url_for('show_transactions'))
 
-    # Else, GET request
-    return render_template('add_monthly_charges.html')
+    # Monthly charges — bulk, respecting checkbox selections
+    if 'monthly_charges' in request.form:
+        date = request.form.get('date_monthly')
+        customers = repository.get_all_customers()
+        for customer in customers:
+            if request.form.get(f'customer_{customer.id}'):
+                transaction = repository.Transaction(
+                    id=None,
+                    customer_id=customer.id,
+                    transaction_type='Charge',
+                    amount=customer.rate,
+                    date=date,
+                    notes='Monthly charge'
+                )
+                repository.add_transaction(transaction)
+        return redirect(url_for('show_transactions'))
 
 @app.route('/statements')
 def show_statements():

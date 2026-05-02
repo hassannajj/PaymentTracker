@@ -14,6 +14,7 @@
 ## Data / Backend
 - [ ] `amount` column is typed INTEGER in the DB schema but treated as float in Python — should be REAL
 - [ ] Guard against adding monthly charges more than once in the same month
+- [ ] Save per-customer monthly charge exclusions so deselections persist across sessions
 - [ ] Editable customer fields (name, rate)
 
 ## Future Features

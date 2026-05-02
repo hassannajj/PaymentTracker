@@ -45,7 +45,7 @@
         <a href="/customers"          {% if request.path.startswith('/customers') %}class="active"{% endif %}>Customers</a>
         <a href="/transactions"       {% if request.path.startswith('/transactions') %}class="active"{% endif %}>Transactions</a>
         <a href="/add_payment"         {% if request.path.startswith('/add_payment') or request.path.startswith('/review_checks') %}class="active"{% endif %}>Add Payment</a>
-        <a href="/add_monthly_charges" {% if request.path.startswith('/add_monthly_charges') %}class="active"{% endif %}>Monthly Charges</a>
+        <a href="/add_charge"          {% if request.path.startswith('/add_charge') %}class="active"{% endif %}>Add Charge</a>
         <a href="/statements"          {% if request.path.startswith('/statements') %}class="active"{% endif %}>Statements</a>
     </nav>
 
