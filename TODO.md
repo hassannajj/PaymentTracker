@@ -6,7 +6,7 @@
 - [ ] Sort transactions chronologically on both the transactions page and customer profile page
 
 ## UI / Navigation
-- [ ] Navbar — currently every page requires going back to home to navigate
+- [x] Navbar — currently every page requires going back to home to navigate
 - [ ] Fix date display — some pages show full datetime string (2024-01-01 00:00:00) instead of just the date
 
 ## Data / Backend

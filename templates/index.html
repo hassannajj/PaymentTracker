@@ -1,15 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Home</title>
-</head>
-<body>
-    <h1>Welcome to the Payment Tracker</h1>
-    <a href="/add_customer">Add Customer</a><br>
-    <a href="/add_transaction">Add Transaction</a><br>
-    <a href="/customers">View Customers</a><br>
-    <a href="/transactions">View Transactions</a><br>
-    <a href="/add_monthly_charges">Add Monthly Charges</a><br>
-    <a href="/process_checks">Process Checks</a><br>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Home — Payment Tracker{% endblock %}
+{% block content %}
+<h1>Welcome to Payment Tracker</h1>
+<p>Use the navigation bar above to get started.</p>
+{% endblock %}

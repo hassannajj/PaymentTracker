@@ -1,31 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Customers</title>
-</head>
-<body>
-    <a href="/">Home</a>
-    <h1>Customers</h1>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Rate</th>
-                <th>Balance</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {% for customer in customers %}
-            <tr>
-                <td>{{ customer.id }}</td>
-                <td><a href="/customers/{{ customer.id }}">{{ customer.name }}</a></td>
-                <td>{{ customer.rate }}</td>
-                <td>{{ balances.get(customer.id, 0) }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
- </body>
-</html>
+{% extends 'base.html' %}
+{% block title %}Customers — Payment Tracker{% endblock %}
+{% block content %}
+<h1>Customers</h1>
+<a href="/add_customer"><button>+ Add Customer</button></a>
+<br><br>
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Rate</th>
+            <th>Balance</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for customer in customers %}
+        <tr>
+            <td>{{ customer.id }}</td>
+            <td><a href="/customers/{{ customer.id }}">{{ customer.name }}</a></td>
+            <td>{{ customer.rate }}</td>
+            <td>{{ balances.get(customer.id, 0) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

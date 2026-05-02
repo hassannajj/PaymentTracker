@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Payment Tracker{% endblock %}</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: sans-serif; }
+        nav {
+            background: #2c3e50;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        nav .brand {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 14px 12px;
+            text-decoration: none;
+            margin-right: 12px;
+        }
+        nav a {
+            color: #ccc;
+            text-decoration: none;
+            padding: 14px 12px;
+            display: inline-block;
+        }
+        nav a:hover { color: #fff; background: #3d5166; }
+        nav a.active { color: #fff; border-bottom: 3px solid #3498db; }
+        .page { padding: 24px; }
+        .flash-error { color: red; }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav>
+        <a class="brand" href="/">Payment Tracker</a>
+        <a href="/customers"          {% if request.path.startswith('/customers') %}class="active"{% endif %}>Customers</a>
+        <a href="/transactions"       {% if request.path.startswith('/transactions') %}class="active"{% endif %}>Transactions</a>
+        <a href="/process_checks"     {% if request.path.startswith('/process_checks') or request.path.startswith('/review_checks') %}class="active"{% endif %}>Process Checks</a>
+        <a href="/add_monthly_charges" {% if request.path.startswith('/add_monthly_charges') %}class="active"{% endif %}>Monthly Charges</a>
+    </nav>
+
+    <div class="page">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <p class="flash-error">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
