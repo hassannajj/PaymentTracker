@@ -2,6 +2,34 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+# Engineering Standards
+
+## Code Quality
+- Use strong typing everywhere, never use `any`
+- Write explicit error messages that explain what went wrong and what's expected
+- Keep variable and function names descriptive and clear
+- Remove unused code and dead imports aggressively
+
+## Logging
+- Log every significant action, state change, and error
+- Logs should answer: what happened, where, and with what data
+
+## Git
+- Write commit messages that explain WHY something changed, not just what
+- Every feature gets its own branch
+- Use migration files for all database changes, never edit schema directly
+
+## Security
+- Never hardcode secrets, always use env vars
+- Use read-only database users for debugging
+- Scope credentials to minimum necessary permissions
+
+## General
+- Plan before implementing — clarify requirements first
+- When something breaks, find a way to give the AI access to fix it rather than fixing manually
+
+
+
 ## Running the app
 
 ```bash
