@@ -114,14 +114,31 @@ def add_transaction():
     customers = repository.get_all_customers()
     return render_template('add_transaction.html', customers=customers)
 
-@app.route('/process_checks', methods=['GET'])
-def process_checks_form():
+@app.route('/add_payment', methods=['GET'])
+def add_payment_form():
     customers = repository.get_all_customers()
     return render_template('upload_checks.html', customers=customers)
 
-@app.route('/process_checks', methods=['POST'])
-def process_checks():
-    # If manually entered check data
+@app.route('/add_payment', methods=['POST'])
+def add_payment():
+    # Cash payment — commit directly
+    if 'cash_payment' in request.form:
+        customer_id = request.form.get('customer_id_cash')
+        amount = request.form.get('amount_cash')
+        date = request.form.get('date_cash')
+        notes = request.form.get('notes_cash', '')
+        transaction = repository.Transaction(
+            id=None,
+            customer_id=int(customer_id),
+            transaction_type='Payment',
+            amount=float(amount),
+            date=date,
+            notes=notes if notes else 'Cash payment'
+        )
+        repository.add_transaction(transaction)
+        return redirect(url_for('show_transactions'))
+
+    # Manual check — send to review
     if 'manual_check' in request.form:
         customer_id = request.form.get('customer_id')
         check_number = request.form.get('check_id', '')
@@ -141,17 +158,17 @@ def process_checks():
         session['pending_checks'] = pending
         return redirect(url_for('review_checks'))
 
-    # If file was uploaded
+    # AI file upload
     files = request.files.getlist('checks')
     if not files or all(f.filename == '' for f in files):
         flash('No files selected.')
-        return redirect(url_for('process_checks_form'))
+        return redirect(url_for('add_payment_form'))
     customers = repository.get_all_customers()
     try:
         extracted = check_processor.extract_checks_from_files(files, customers)
     except Exception as e:
         flash(f'Error processing checks: {e}')
-        return redirect(url_for('process_checks_form'))
+        return redirect(url_for('add_payment_form'))
     session['pending_checks'] = extracted
     return redirect(url_for('review_checks'))
 
@@ -159,7 +176,7 @@ def process_checks():
 def review_checks():
     pending = session.get('pending_checks', [])
     if not pending:
-        return redirect(url_for('process_checks_form'))
+        return redirect(url_for('add_payment_form'))
     customers = repository.get_all_customers()
     today = datetime.today().strftime('%Y-%m-%d')
     return render_template('review_checks.html', checks=pending, customers=customers, today=today)
