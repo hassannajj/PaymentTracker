@@ -1,27 +1,199 @@
 {% extends 'base.html' %}
 {% block title %}Customers — Payment Tracker{% endblock %}
+
+{% block head %}
+<style>
+    td input[type="text"], td input[type="number"] { width: 100%; box-sizing: border-box; }
+    .btn-edit, .btn-save, .btn-cancel, .btn-deactivate, .btn-restore { cursor: pointer; }
+    .edit-controls { display: none; }
+    tr.editing .edit-controls { display: inline; }
+    tr.editing .btn-edit { display: none; }
+    .error-msg { color: red; font-size: 0.85em; }
+    .inactive-section { margin-top: 32px; }
+    .inactive-section h2 { font-size: 1em; color: #888; cursor: pointer; user-select: none; }
+    tr.inactive-row td { color: #aaa; }
+</style>
+{% endblock %}
+
 {% block content %}
 <h1>Customers</h1>
 <a href="/add_customer"><button>+ Add Customer</button></a>
 <br><br>
+
 <table border="1">
     <thead>
         <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Rate</th>
+            <th>Rate ($/mo)</th>
             <th>Balance</th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
         {% for customer in customers %}
-        <tr>
+        <tr data-id="{{ customer.id }}">
             <td>{{ customer.id }}</td>
-            <td><a href="/customers/{{ customer.id }}">{{ customer.name }}</a></td>
-            <td>{{ customer.rate }}</td>
+            <td class="cell-name"><a href="/customers/{{ customer.id }}">{{ customer.name }}</a></td>
+            <td class="cell-rate">{{ customer.rate }}</td>
             <td>{{ balances.get(customer.id, 0) }}</td>
+            <td>
+                <button class="btn-edit">Edit</button>
+                <span class="edit-controls">
+                    <button class="btn-save">Save</button>
+                    <button class="btn-deactivate">Deactivate</button>
+                    <button class="btn-cancel">Cancel</button>
+                </span>
+                <span class="error-msg"></span>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+
+{% if inactive_customers %}
+<div class="inactive-section">
+    <h2 onclick="toggleInactive(this)">▶ Inactive customers ({{ inactive_customers | length }})</h2>
+    <div id="inactive-list" style="display:none;">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Rate ($/mo)</th>
+                    <th>Balance</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in inactive_customers %}
+                <tr class="inactive-row" data-id="{{ customer.id }}">
+                    <td>{{ customer.id }}</td>
+                    <td>{{ customer.name }}</td>
+                    <td>{{ customer.rate }}</td>
+                    <td>{{ balances.get(customer.id, 0) }}</td>
+                    <td>
+                        <button class="btn-restore" onclick="restoreCustomer({{ customer.id }}, this)">Restore</button>
+                        <span class="error-msg"></span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.querySelector('tbody').addEventListener('click', function (e) {
+        const row = e.target.closest('tr');
+        if (!row) return;
+        if (e.target.classList.contains('btn-edit'))       enterEditMode(row);
+        if (e.target.classList.contains('btn-cancel'))     exitEditMode(row);
+        if (e.target.classList.contains('btn-save'))       saveRow(row);
+        if (e.target.classList.contains('btn-deactivate')) deactivateRow(row);
+    });
+
+    function enterEditMode(row) {
+        const nameCell = row.querySelector('.cell-name');
+        const rateCell = row.querySelector('.cell-rate');
+
+        nameCell.dataset.orig = nameCell.textContent.trim();
+        rateCell.dataset.orig = rateCell.textContent.trim();
+
+        const id = row.dataset.id;
+        nameCell.innerHTML = `<input type="text" value="${nameCell.dataset.orig}">`;
+        rateCell.innerHTML = `<input type="number" step="0.01" value="${rateCell.dataset.orig}">`;
+
+        row.classList.add('editing');
+        row.querySelector('.error-msg').textContent = '';
+    }
+
+    function exitEditMode(row) {
+        const nameCell = row.querySelector('.cell-name');
+        const rateCell = row.querySelector('.cell-rate');
+        const id = row.dataset.id;
+        nameCell.innerHTML = `<a href="/customers/${id}">${nameCell.dataset.orig}</a>`;
+        rateCell.textContent = rateCell.dataset.orig;
+        row.classList.remove('editing');
+        row.querySelector('.error-msg').textContent = '';
+    }
+
+    function saveRow(row) {
+        const id   = row.dataset.id;
+        const name = row.querySelector('.cell-name input').value.trim();
+        const rate = row.querySelector('.cell-rate input').value;
+
+        if (!window.confirm(`Save changes to ${name}?`)) return;
+
+        fetch(`/customers/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, rate })
+        })
+        .then(res => res.json().then(data => ({ ok: res.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) {
+                row.querySelector('.error-msg').textContent = data.error || 'Save failed.';
+                return;
+            }
+            row.querySelector('.cell-name').innerHTML = `<a href="/customers/${id}">${data.name}</a>`;
+            row.querySelector('.cell-rate').textContent = data.rate;
+            row.classList.remove('editing');
+            row.querySelector('.error-msg').textContent = '';
+        })
+        .catch(() => {
+            row.querySelector('.error-msg').textContent = 'Network error — changes not saved.';
+        });
+    }
+
+    function deactivateRow(row) {
+        const id   = row.dataset.id;
+        const name = row.querySelector('.cell-name').dataset.orig ||
+                     row.querySelector('.cell-name input')?.value ||
+                     row.querySelector('.cell-name a')?.textContent;
+
+        if (!window.confirm(`Deactivate ${name}? They will be hidden from active lists but their transaction history is preserved.`)) return;
+
+        fetch(`/customers/${id}`, { method: 'DELETE' })
+        .then(res => {
+            if (res.ok) {
+                row.remove();
+            } else {
+                res.json().then(data => {
+                    row.querySelector('.error-msg').textContent = data.error || 'Deactivate failed.';
+                });
+            }
+        })
+        .catch(() => {
+            row.querySelector('.error-msg').textContent = 'Network error.';
+        });
+    }
+
+    function restoreCustomer(id, btn) {
+        const row = btn.closest('tr');
+        fetch(`/customers/${id}/restore`, { method: 'POST' })
+        .then(res => {
+            if (res.ok) {
+                row.remove();
+                // Reload so active table updates
+                window.location.reload();
+            } else {
+                row.querySelector('.error-msg').textContent = 'Restore failed.';
+            }
+        })
+        .catch(() => {
+            row.querySelector('.error-msg').textContent = 'Network error.';
+        });
+    }
+
+    function toggleInactive(header) {
+        const list = document.getElementById('inactive-list');
+        const open = list.style.display !== 'none';
+        list.style.display = open ? 'none' : 'block';
+        header.textContent = header.textContent.replace(open ? '▼' : '▶', open ? '▶' : '▼');
+    }
+</script>
 {% endblock %}

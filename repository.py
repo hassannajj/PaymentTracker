@@ -4,10 +4,11 @@ from datetime import datetime
 
 
 class Customer:
-    def __init__(self, id, name, rate):
+    def __init__(self, id, name, rate, is_active=1):
         self.id = id
         self.name = name
         self.rate = rate
+        self.is_active = is_active
     
     def calculate_balance(self, transactions):
         balance = 0
@@ -57,25 +58,51 @@ def reset_customer_data():
     create_customers_table()
     db_conn.commit()
 
-def get_all_customers():
+def run_migrations():
+    db_conn = db.get_db()
+    try:
+        db_conn.execute("ALTER TABLE customers ADD COLUMN is_active INTEGER DEFAULT 1")
+        db_conn.commit()
+    except Exception:
+        pass  # column already exists
+
+def get_all_customers(active_only: bool = True):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT id, name, rate FROM customers")
+    if active_only:
+        cursor.execute("SELECT id, name, rate, is_active FROM customers WHERE is_active = 1")
+    else:
+        cursor.execute("SELECT id, name, rate, is_active FROM customers")
     rows = cursor.fetchall()
-    return [Customer(row["id"], row["name"], row["rate"]) for row in rows]
-
+    return [Customer(row["id"], row["name"], row["rate"], row["is_active"]) for row in rows]
 
 def get_specific_customer(customer_id) -> Customer:
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT id, name, rate FROM customers WHERE id = ?", (customer_id,))
+    cursor.execute("SELECT id, name, rate, is_active FROM customers WHERE id = ?", (customer_id,))
     row = cursor.fetchone()
     if row:
-        return Customer(row["id"], row["name"], row["rate"])
-    
-    # Else
+        return Customer(row["id"], row["name"], row["rate"], row["is_active"])
     print(f"No customer found with ID {customer_id}.")
     return None
+
+def update_customer(customer_id: int, name: str, rate: float):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("UPDATE customers SET name=?, rate=? WHERE id=?", (name, rate, customer_id))
+    db_conn.commit()
+
+def deactivate_customer(customer_id: int):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("UPDATE customers SET is_active=0 WHERE id=?", (customer_id,))
+    db_conn.commit()
+
+def restore_customer(customer_id: int):
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("UPDATE customers SET is_active=1 WHERE id=?", (customer_id,))
+    db_conn.commit()
 
 def get_all_balances():
     db_conn = db.get_db()

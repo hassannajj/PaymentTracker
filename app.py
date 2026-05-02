@@ -13,6 +13,7 @@ app.secret_key = 'dev-secret-change-in-production'
 with app.app_context():
     repository.create_customers_table()
     repository.create_transactions_table()
+    repository.run_migrations()
 
 
 @app.teardown_appcontext
@@ -26,9 +27,12 @@ def index():
 
 @app.route('/customers')
 def show_customers():
-    customers = repository.get_all_customers()
+    customers = repository.get_all_customers(active_only=True)
+    inactive_customers = repository.get_all_customers(active_only=False)
+    inactive_customers = [c for c in inactive_customers if not c.is_active]
     balances = repository.get_all_balances()
-    return render_template('customer_list.html', customers=customers, balances=balances)
+    return render_template('customer_list.html', customers=customers,
+                           inactive_customers=inactive_customers, balances=balances)
 
 @app.route('/customers/<int:id>')
 def show_customer(id: int):
@@ -38,6 +42,38 @@ def show_customer(id: int):
     transactions = repository.get_transactions_for_customer(id)
     balance = customer.calculate_balance(transactions=transactions)
     return render_template('customer.html', customer=customer, transactions=transactions, balance=balance)
+
+@app.route('/customers/<int:id>', methods=['PATCH'])
+def update_customer(id: int):
+    customer = repository.get_specific_customer(id)
+    if not customer:
+        return {"error": f"No customer found with ID {id}"}, 404
+    data = request.get_json()
+    try:
+        name = data['name'].strip()
+        rate = float(data['rate'])
+    except (KeyError, ValueError) as e:
+        return {"error": f"Invalid data: {e}"}, 400
+    if not name:
+        return {"error": "Name cannot be empty"}, 400
+    repository.update_customer(id, name, rate)
+    return {"id": id, "name": name, "rate": rate}
+
+@app.route('/customers/<int:id>', methods=['DELETE'])
+def deactivate_customer(id: int):
+    customer = repository.get_specific_customer(id)
+    if not customer:
+        return {"error": f"No customer found with ID {id}"}, 404
+    repository.deactivate_customer(id)
+    return {}, 204
+
+@app.route('/customers/<int:id>/restore', methods=['POST'])
+def restore_customer(id: int):
+    customer = repository.get_specific_customer(id)
+    if not customer:
+        return {"error": f"No customer found with ID {id}"}, 404
+    repository.restore_customer(id)
+    return {}, 204
 
 @app.route('/add_customer', methods=['GET', 'POST'])
 def add_customer():

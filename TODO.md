@@ -1,6 +1,7 @@
 # TODO
 
 - Maybe when showing the rate of a customer's statement, show the rate at the time of the statement rather than the customer's rate right now
+- add some sort of template for the search capabilities so that searching a customer will be basic and searhcing a id/ or name would work
 
 ## High Priority
 - [x] Statement generation — per-customer statement view showing period, starting balance, charges, payments, ending balance
@@ -15,11 +16,11 @@
 - [ ] `amount` column is typed INTEGER in the DB schema but treated as float in Python — should be REAL
 - [ ] Guard against adding monthly charges more than once in the same month
 - [ ] Save per-customer monthly charge exclusions so deselections persist across sessions
-- [ ] Editable customer fields (name, rate)
+- [x] Editable customer fields (name, rate)
 
 ## Future Features
 - [ ] Dashboard — total customers, how many paid this month, how many haven't, total income
-- [ ] Mark customers active / inactive
+- [x] Mark customers active / inactive
 - [ ] Stats page — average monthly rate, total income, etc.
 - [ ] Add charges to multiple specific customers at once (for one-off extras like filter, chlorine, repairs)
 
