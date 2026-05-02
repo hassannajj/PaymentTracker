@@ -1,5 +1,7 @@
 # TODO
 
+- Maybe when showing the rate of a customer's statement, show the rate at the time of the statement rather than the customer's rate right now
+
 ## High Priority
 - [x] Statement generation — per-customer statement view showing period, starting balance, charges, payments, ending balance
 - [x] DB auto-initialization on first run — tables are not created automatically after removing demo.py/test.py
