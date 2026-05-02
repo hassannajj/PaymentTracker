@@ -1,7 +1,7 @@
 # TODO
 
 ## High Priority
-- [ ] Statement generation — per-customer statement view showing period, starting balance, charges, payments, ending balance
+- [x] Statement generation — per-customer statement view showing period, starting balance, charges, payments, ending balance
 - [x] DB auto-initialization on first run — tables are not created automatically after removing demo.py/test.py
 - [ ] Sort transactions chronologically on both the transactions page and customer profile page
 
@@ -15,7 +15,6 @@
 - [ ] Editable customer fields (name, rate)
 
 ## Future Features
-- [ ] Print list — add multiple customer statements to a queue and print in one batch
 - [ ] Dashboard — total customers, how many paid this month, how many haven't, total income
 - [ ] Mark customers active / inactive
 - [ ] Stats page — average monthly rate, total income, etc.

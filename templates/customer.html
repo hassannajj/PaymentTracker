@@ -17,7 +17,7 @@
 <p>ID: {{ customer.id }}</p>
 <p>Balance: $<span id="balance">{{ balance }}</span></p>
 <p>Rate: ${{ customer.rate }}/month</p>
-<h2>Transactions</h2>
+<h2>Transactions &nbsp; <a href="/customers/{{ customer.id }}/statement" class="no-print" style="font-size:0.75em;">View Statement</a></h2>
 <table border="1">
     <thead>
         <tr>

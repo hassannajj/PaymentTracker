@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Statements — {{ month_name }} {{ year }}{% endblock %}
+
+{% block head %}
+<style>
+    .controls { margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ddd; }
+    th { background: #f4f4f4; }
+    .amount { text-align: right; }
+    .print-page { margin-bottom: 40px; }
+    .print-page h2 { margin-bottom: 4px; }
+    .print-page .period { color: #555; margin-top: 0; }
+    .print-page .summary-table td { padding: 4px 10px; }
+    .print-page .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
+    .section-table th, .section-table td { padding: 4px 10px; font-size: 0.9em; }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Statements</h1>
+
+<div class="controls no-print">
+    <label for="month-picker">Month:</label>
+    <input type="month" id="month-picker" value="{{ month_str }}">
+    <button onclick="goToMonth()">Go</button>
+    &nbsp;&nbsp;
+    <button onclick="window.print()">Print All</button>
+</div>
+
+{# Summary table (screen only) #}
+<div class="no-print">
+    <table>
+        <thead>
+            <tr>
+                <th>Customer</th>
+                <th class="amount">Starting Balance</th>
+                <th class="amount">Charges</th>
+                <th class="amount">Payments</th>
+                <th class="amount">Ending Balance</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in statements %}
+            <tr>
+                <td>{{ s.customer.name }}</td>
+                <td class="amount">${{ "%.2f"|format(s.data.starting_balance) }}</td>
+                <td class="amount">${{ "%.2f"|format(s.data.total_charges) }}</td>
+                <td class="amount">${{ "%.2f"|format(s.data.total_payments) }}</td>
+                <td class="amount">${{ "%.2f"|format(s.data.ending_balance) }}</td>
+                <td><a href="/customers/{{ s.customer.id }}/statement?month={{ month_str }}">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{# Full statements for printing (print only) #}
+{% for s in statements %}
+<div class="print-page">
+    <h2>{{ s.customer.name }}</h2>
+    <p class="period">Statement for {{ month_name }} {{ year }} &nbsp;|&nbsp; Rate: ${{ s.customer.rate }}/month</p>
+
+    <table class="summary-table">
+        <tr><td>Starting balance</td><td class="amount">${{ "%.2f"|format(s.data.starting_balance) }}</td></tr>
+        <tr><td>Charges this month</td><td class="amount">+${{ "%.2f"|format(s.data.total_charges) }}</td></tr>
+        <tr><td>Payments this month</td><td class="amount">-${{ "%.2f"|format(s.data.total_payments) }}</td></tr>
+        <tr><td>Ending balance</td><td class="amount">${{ "%.2f"|format(s.data.ending_balance) }}</td></tr>
+    </table>
+
+    {% if s.data.charges %}
+    <p><strong>Charges</strong></p>
+    <table class="section-table">
+        <thead><tr><th>Date</th><th>Notes</th><th class="amount">Amount</th></tr></thead>
+        <tbody>
+            {% for t in s.data.charges %}
+            <tr>
+                <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ t.notes }}</td>
+                <td class="amount">${{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if s.data.payments %}
+    <p><strong>Payments</strong></p>
+    <table class="section-table">
+        <thead><tr><th>Date</th><th>Notes</th><th class="amount">Amount</th></tr></thead>
+        <tbody>
+            {% for t in s.data.payments %}
+            <tr>
+                <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ t.notes }}</td>
+                <td class="amount">${{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if not s.data.charges and not s.data.payments %}
+    <p>No transactions this month.</p>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function goToMonth() {
+        const val = document.getElementById('month-picker').value;
+        if (val) window.location = `/statements?month=${val}`;
+    }
+    document.getElementById('month-picker').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') goToMonth();
+    });
+</script>
+{% endblock %}

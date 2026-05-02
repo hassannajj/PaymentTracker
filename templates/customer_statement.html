@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Statement — {{ customer.name }}{% endblock %}
+
+{% block head %}
+<style>
+    .statement { max-width: 600px; }
+    .statement h2 { margin-bottom: 4px; }
+    .statement .period { color: #555; margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #ddd; }
+    th { background: #f4f4f4; }
+    .amount { text-align: right; }
+    .summary-table td { font-weight: normal; }
+    .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
+    .controls { margin-bottom: 16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="statement">
+    <div class="controls no-print">
+        <a href="/customers/{{ customer.id }}">&larr; Back to {{ customer.name }}</a>
+        &nbsp;&nbsp;
+        <label for="month-picker">Month:</label>
+        <input type="month" id="month-picker" value="{{ month_str }}">
+        &nbsp;
+        <button onclick="goToMonth()">Go</button>
+        &nbsp;&nbsp;
+        <button onclick="window.print()">Print</button>
+    </div>
+
+    <h2>{{ customer.name }}</h2>
+    <p class="period">Statement for {{ month_name }} {{ year }} &nbsp;|&nbsp; Rate: ${{ customer.rate }}/month</p>
+
+    <table class="summary-table">
+        <tr><td>Starting balance</td><td class="amount">${{ "%.2f"|format(data.starting_balance) }}</td></tr>
+        <tr><td>Charges this month</td><td class="amount">+${{ "%.2f"|format(data.total_charges) }}</td></tr>
+        <tr><td>Payments this month</td><td class="amount">-${{ "%.2f"|format(data.total_payments) }}</td></tr>
+        <tr><td>Ending balance</td><td class="amount">${{ "%.2f"|format(data.ending_balance) }}</td></tr>
+    </table>
+
+    {% if data.charges %}
+    <h3>Charges</h3>
+    <table>
+        <thead><tr><th>Date</th><th>Notes</th><th class="amount">Amount</th></tr></thead>
+        <tbody>
+            {% for t in data.charges %}
+            <tr>
+                <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ t.notes }}</td>
+                <td class="amount">${{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if data.payments %}
+    <h3>Payments</h3>
+    <table>
+        <thead><tr><th>Date</th><th>Notes</th><th class="amount">Amount</th></tr></thead>
+        <tbody>
+            {% for t in data.payments %}
+            <tr>
+                <td>{{ t.date.strftime('%Y-%m-%d') }}</td>
+                <td>{{ t.notes }}</td>
+                <td class="amount">${{ "%.2f"|format(t.amount) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if not data.charges and not data.payments %}
+    <p>No transactions this month.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function goToMonth() {
+        const val = document.getElementById('month-picker').value;
+        if (val) window.location = `/customers/{{ customer.id }}/statement?month=${val}`;
+    }
+    document.getElementById('month-picker').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') goToMonth();
+    });
+</script>
+{% endblock %}

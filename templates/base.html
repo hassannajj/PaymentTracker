@@ -31,6 +31,11 @@
         nav a.active { color: #fff; border-bottom: 3px solid #3498db; }
         .page { padding: 24px; }
         .flash-error { color: red; }
+        @media print {
+            nav, .no-print { display: none !important; }
+            .page { padding: 0; }
+            .print-page { page-break-after: always; }
+        }
     </style>
     {% block head %}{% endblock %}
 </head>
@@ -41,6 +46,7 @@
         <a href="/transactions"       {% if request.path.startswith('/transactions') %}class="active"{% endif %}>Transactions</a>
         <a href="/process_checks"     {% if request.path.startswith('/process_checks') or request.path.startswith('/review_checks') %}class="active"{% endif %}>Process Checks</a>
         <a href="/add_monthly_charges" {% if request.path.startswith('/add_monthly_charges') %}class="active"{% endif %}>Monthly Charges</a>
+        <a href="/statements"          {% if request.path.startswith('/statements') %}class="active"{% endif %}>Statements</a>
     </nav>
 
     <div class="page">

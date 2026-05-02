@@ -1,3 +1,4 @@
+import calendar
 import db
 from datetime import datetime
 
@@ -176,6 +177,49 @@ def update_transaction(transaction_id: int, amount: float, date: str, notes: str
 def add_transaction(transaction: Transaction):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("INSERT INTO transactions (customer_id, transaction_type, amount, date, notes) VALUES (?, ?, ?, ?, ?)", 
+    cursor.execute("INSERT INTO transactions (customer_id, transaction_type, amount, date, notes) VALUES (?, ?, ?, ?, ?)",
                    (transaction.customer_id, transaction.transaction_type, transaction.amount, transaction.date.strftime("%Y-%m-%d %H:%M:%S"), transaction.notes))
     db_conn.commit()
+
+def get_statement_data(customer_id: int, year: int, month: int) -> dict:
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+
+    period_start = f"{year}-{month:02d}-01"
+    last_day = calendar.monthrange(year, month)[1]
+    period_end = f"{year}-{month:02d}-{last_day:02d}"
+
+    cursor.execute("""
+        SELECT SUM(CASE WHEN LOWER(transaction_type) = 'charge' THEN amount ELSE -amount END)
+        FROM transactions
+        WHERE customer_id = ? AND date < ?
+    """, (customer_id, period_start))
+    row = cursor.fetchone()
+    starting_balance = row[0] or 0.0
+
+    cursor.execute("""
+        SELECT id, customer_id, transaction_type, amount, date, notes
+        FROM transactions
+        WHERE customer_id = ? AND date >= ? AND date <= ?
+        ORDER BY date
+    """, (customer_id, period_start, period_end + " 23:59:59"))
+    rows = cursor.fetchall()
+    period_transactions = [
+        Transaction(r["id"], r["customer_id"], r["transaction_type"], r["amount"], r["date"], r["notes"])
+        for r in rows
+    ]
+
+    charges = [t for t in period_transactions if t.transaction_type.lower() == "charge"]
+    payments = [t for t in period_transactions if t.transaction_type.lower() == "payment"]
+    total_charges = sum(t.amount for t in charges)
+    total_payments = sum(t.amount for t in payments)
+    ending_balance = starting_balance + total_charges - total_payments
+
+    return {
+        "starting_balance": starting_balance,
+        "charges": charges,
+        "payments": payments,
+        "total_charges": total_charges,
+        "total_payments": total_payments,
+        "ending_balance": ending_balance,
+    }

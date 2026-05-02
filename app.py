@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from markupsafe import escape
-from datetime import datetime
+from datetime import datetime, date
 
 import db
 import repository
@@ -204,3 +204,37 @@ def add_monthly_charges():
 
     # Else, GET request
     return render_template('add_monthly_charges.html')
+
+@app.route('/statements')
+def show_statements():
+    today = date.today()
+    month_str = request.args.get('month', today.strftime('%Y-%m'))
+    try:
+        year, month = int(month_str[:4]), int(month_str[5:7])
+    except (ValueError, IndexError):
+        year, month = today.year, today.month
+    customers = repository.get_all_customers()
+    statements = []
+    for customer in customers:
+        data = repository.get_statement_data(customer.id, year, month)
+        statements.append({"customer": customer, "data": data})
+    return render_template('statements.html', statements=statements,
+                           month_str=month_str, year=year, month=month)
+
+@app.route('/customers/<int:id>/statement')
+def show_customer_statement(id: int):
+    customer = repository.get_specific_customer(id)
+    if not customer:
+        return {"error": f"No customer found with ID {id}"}, 404
+    today = date.today()
+    month_str = request.args.get('month', today.strftime('%Y-%m'))
+    try:
+        year, month = int(month_str[:4]), int(month_str[5:7])
+    except (ValueError, IndexError):
+        year, month = today.year, today.month
+    data = repository.get_statement_data(id, year, month)
+    import calendar as cal
+    month_name = cal.month_name[month]
+    return render_template('customer_statement.html', customer=customer,
+                           data=data, month_str=month_str,
+                           month_name=month_name, year=year)
