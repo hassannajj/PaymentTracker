@@ -39,13 +39,13 @@
         <p>
             <label for="customer_search_cash">Customer</label>
             <input type="text" id="customer_search_cash" name="customer_search_cash"
-                placeholder="Search by name..."
+                placeholder="Search by name or ID..."
                 list="list_of_customers_cash" autocomplete="off" required>
         </p>
         <input type="hidden" id="customer_id_cash" name="customer_id_cash">
         <datalist id="list_of_customers_cash">
             {% for customer in customers %}
-            <option value="{{ customer.name }}" data-id="{{ customer.id }}">
+            <option value="{{ customer.id }} — {{ customer.name }}" data-id="{{ customer.id }}">
             {% endfor %}
         </datalist>
         <p>
@@ -77,13 +77,13 @@
         <p>
             <label for="customer_search">Customer</label>
             <input type="text" id="customer_search" name="customer_search"
-                placeholder="Search by name..."
+                placeholder="Search by name or ID..."
                 list="list_of_customers" autocomplete="off" required>
         </p>
         <input type="hidden" id="customer_id" name="customer_id">
         <datalist id="list_of_customers">
             {% for customer in customers %}
-            <option value="{{ customer.name }}" data-id="{{ customer.id }}">
+            <option value="{{ customer.id }} — {{ customer.name }}" data-id="{{ customer.id }}">
             {% endfor %}
         </datalist>
         <p>

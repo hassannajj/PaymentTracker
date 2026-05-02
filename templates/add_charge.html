@@ -28,6 +28,14 @@
     label.field { display: inline-block; width: 90px; }
     .customer-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
     .customer-row .rate { color: #888; font-size: 0.9em; }
+    .customer-list {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 6px 10px;
+        margin-bottom: 10px;
+    }
 </style>
 {% endblock %}
 
@@ -41,13 +49,13 @@
         <p>
             <label class="field" for="customer_search_extra">Customer</label>
             <input type="text" id="customer_search_extra" name="customer_search_extra"
-                placeholder="Search by name..."
+                placeholder="Search by name or ID..."
                 list="list_of_customers_extra" autocomplete="off" required>
         </p>
         <input type="hidden" id="customer_id_extra" name="customer_id_extra">
         <datalist id="list_of_customers_extra">
             {% for customer in customers %}
-            <option value="{{ customer.name }}" data-id="{{ customer.id }}">
+            <option value="{{ customer.id }} — {{ customer.name }}" data-id="{{ customer.id }}">
             {% endfor %}
         </datalist>
         <p>
@@ -76,15 +84,20 @@
             <label class="field" for="date_monthly">Date</label>
             <input type="date" id="date_monthly" name="date_monthly" required>
         </p>
-        <p><strong>Customers</strong> <small style="color:#888;">(uncheck to skip)</small></p>
-        {% for customer in customers %}
-        <div class="customer-row">
-            <input type="checkbox" id="customer_{{ customer.id }}" name="customer_{{ customer.id }}" value="1" checked>
-            <label for="customer_{{ customer.id }}">{{ customer.name }}</label>
-            <span class="rate">${{ customer.rate }}/mo</span>
+        <p>
+            <strong>Customers</strong> <small style="color:#888;">(uncheck to skip)</small>
+        </p>
+        <input type="text" id="customer-filter" placeholder="Search by name or ID..." autocomplete="off"
+            style="width:100%; margin-bottom:6px; padding:4px 8px; box-sizing:border-box;">
+        <div class="customer-list">
+            {% for customer in customers %}
+            <div class="customer-row" data-customer-id="{{ customer.id }}" data-customer-name="{{ customer.name | lower }}">
+                <input type="checkbox" id="customer_{{ customer.id }}" name="customer_{{ customer.id }}" value="1" checked>
+                <label for="customer_{{ customer.id }}">{{ customer.name }}</label>
+                <span class="rate">${{ customer.rate }}/mo</span>
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-        <br>
         <input type="submit" name="monthly_charges" value="Add Monthly Charges">
     </form>
 </div>
@@ -116,5 +129,14 @@
             }
         });
     }
+
+    document.getElementById('customer-filter').addEventListener('input', function () {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('.customer-row').forEach(row => {
+            const name = row.dataset.customerName;
+            const id   = row.dataset.customerId;
+            row.style.display = (name.includes(q) || id.includes(q)) ? '' : 'none';
+        });
+    });
 </script>
 {% endblock %}
