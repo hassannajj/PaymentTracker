@@ -128,28 +128,6 @@ def update_transaction(id: int):
     repository.update_transaction(id, amount, date, notes)
     return {"id": id, "amount": amount, "date": date, "notes": notes}
 
-@app.route('/add_transaction', methods=['GET', 'POST'])
-def add_transaction():
-    if request.method == 'POST':
-        customer_id = request.form.get('customer_id')
-        transaction_type = request.form.get('transaction_type')
-        amount = request.form.get('amount')
-        date = request.form.get('date')
-        notes = request.form.get('notes')
-        transaction = repository.Transaction(
-            id=None,
-            customer_id=customer_id,
-            transaction_type=transaction_type,
-            amount=amount,
-            date=date,
-            notes=notes
-        )        
-        repository.add_transaction(transaction)
-        return redirect(url_for('show_transactions'))
-
-    # Else, GET request
-    customers = repository.get_all_customers()
-    return render_template('add_transaction.html', customers=customers)
 
 @app.route('/add_payment', methods=['GET'])
 def add_payment_form():
