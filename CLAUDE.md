@@ -38,7 +38,7 @@ flask run
 
 Requires `ANTHROPIC_API_KEY` in the environment (used by `check_processor.py`). Create a `.env` file — `python-dotenv` is installed and Flask will pick it up automatically.
 
-The SQLite database file is `demo-data2.db` in the project root.
+The SQLite database file is `data/data.db`.
 
 ## Architecture
 
@@ -49,7 +49,7 @@ The app is a Flask web app with a clean layer separation:
 - **`check_processor.py`** — Sends uploaded check images/PDFs to the Claude API (via `anthropic` SDK) as base64-encoded content. Returns a list of dicts with extracted fields (`payer_name`, `customer_id`, `amount`, `check_number`, `date`, `memo`, `notes`). Claude fuzzy-matches payer names to the customer list passed in.
 - **`app.py`** — Flask routes only. No business logic — just calls `repository.*` and `check_processor.*`, passes data to templates.
 - **`demo.py`** — Legacy CLI script (pre-web). Contains `Ledger` and `Displayer` classes. Not used by the Flask app; ignore for web development.
-- **`test.py`** — Scratch script that resets and repopulates the DB with test data. Running it **wipes `demo-data2.db`**.
+- **`test.py`** — Scratch script that resets and repopulates the DB with test data. Running it **wipes `data/data.db`**.
 
 ## Check ingestion flow
 

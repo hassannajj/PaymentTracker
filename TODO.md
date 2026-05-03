@@ -1,7 +1,11 @@
 # TODO
 
+System:
+- Maybe use SQLite since its easy app, with automatic backsups to S3 bucket or DigitalOcean spaces
+- 
+
+
 - Maybe when showing the rate of a customer's statement, show the rate at the time of the statement rather than the customer's rate right now
-- add some sort of template for the search capabilities so that searching a customer will be basic and searhcing a id/ or name would work
 
 ## High Priority
 - [x] Statement generation — per-customer statement view showing period, starting balance, charges, payments, ending balance

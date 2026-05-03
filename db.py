@@ -1,8 +1,8 @@
-# Manages the SQLite database connection
 from flask import g
 import sqlite3
+import os
 
-DATABASE = 'demo-data2.db'
+DATABASE = os.environ.get('DATABASE_PATH', 'data/data.db')
 
 def get_db():
     if "db" not in g:

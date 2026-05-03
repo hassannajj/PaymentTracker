@@ -32,7 +32,8 @@ PaymentTracker/
 ├── check_processor.py      # AI-powered check image/PDF data extraction
 ├── requirements.txt        # Python dependencies
 ├── .env                    # Environment variables (not committed)
-├── demo-data2.db           # SQLite database file (not committed)
+├── data/
+│   └── data.db             # SQLite database file (not committed)
 ├── static/
 │   └── style.css           # Application styles
 └── templates/

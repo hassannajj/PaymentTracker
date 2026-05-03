@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from markupsafe import escape
 from datetime import datetime, date
+import os
 
 import db
 import repository
@@ -8,7 +9,7 @@ import check_processor
 
 
 app = Flask(__name__)
-app.secret_key = 'dev-secret-change-in-production'
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'dev-secret-change-in-production')
 
 with app.app_context():
     repository.create_customers_table()
