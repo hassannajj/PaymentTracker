@@ -1,0 +1,17 @@
+{% macro customer_search_select(input_id, datalist_id, hidden_id, customers) %}
+<input type="text" id="{{ input_id }}" name="{{ input_id }}"
+    class="customer-search-input"
+    placeholder="Search by name or ID..."
+    list="{{ datalist_id }}" autocomplete="off" required>
+<input type="hidden" id="{{ hidden_id }}" name="{{ hidden_id }}">
+<datalist id="{{ datalist_id }}">
+    {% for customer in customers %}
+    <option value="{{ customer.id }} — {{ customer.name }}" data-id="{{ customer.id }}">
+    {% endfor %}
+</datalist>
+{% endmacro %}
+
+{% macro customer_filter_input(input_id, placeholder="Search by name or ID...") %}
+<input type="text" id="{{ input_id }}" class="customer-search-input"
+    placeholder="{{ placeholder }}" autocomplete="off">
+{% endmacro %}

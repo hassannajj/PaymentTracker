@@ -37,6 +37,7 @@
             .print-page { page-break-after: always; }
         }
     </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
@@ -61,6 +62,7 @@
         {% block content %}{% endblock %}
     </div>
 
+    <script src="{{ url_for('static', filename='customer-search.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

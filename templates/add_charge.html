@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import customer_search_select, customer_filter_input %}
 {% block title %}Add Charge — Payment Tracker{% endblock %}
 
 {% block head %}
@@ -48,16 +49,8 @@
     <form id="extra-form" method="post">
         <p>
             <label class="field" for="customer_search_extra">Customer</label>
-            <input type="text" id="customer_search_extra" name="customer_search_extra"
-                placeholder="Search by name or ID..."
-                list="list_of_customers_extra" autocomplete="off" required>
+            {{ customer_search_select('customer_search_extra', 'list_of_customers_extra', 'customer_id_extra', customers) }}
         </p>
-        <input type="hidden" id="customer_id_extra" name="customer_id_extra">
-        <datalist id="list_of_customers_extra">
-            {% for customer in customers %}
-            <option value="{{ customer.id }} — {{ customer.name }}" data-id="{{ customer.id }}">
-            {% endfor %}
-        </datalist>
         <p>
             <label class="field" for="amount_extra">Amount ($)</label>
             <input type="number" step="0.01" id="amount_extra" name="amount_extra" required>
@@ -87,8 +80,7 @@
         <p>
             <strong>Customers</strong> <small style="color:#888;">(uncheck to skip)</small>
         </p>
-        <input type="text" id="customer-filter" placeholder="Search by name or ID..." autocomplete="off"
-            style="width:100%; margin-bottom:6px; padding:4px 8px; box-sizing:border-box;">
+        {{ customer_filter_input('customer-filter') }}
         <div class="customer-list">
             {% for customer in customers %}
             <div class="customer-row" data-customer-id="{{ customer.id }}" data-customer-name="{{ customer.name | lower }}">
@@ -106,37 +98,6 @@
 {% block scripts %}
 <script>
     wireCustomerSearch('customer_search_extra', 'list_of_customers_extra', 'customer_id_extra', 'extra-form');
-
-    function wireCustomerSearch(inputId, datalistId, hiddenId, formId) {
-        const input    = document.getElementById(inputId);
-        const datalist = document.getElementById(datalistId);
-        const hidden   = document.getElementById(hiddenId);
-
-        input.addEventListener('input', function () {
-            hidden.value = '';
-            for (const opt of datalist.options) {
-                if (opt.value === this.value) {
-                    hidden.value = opt.getAttribute('data-id');
-                    break;
-                }
-            }
-        });
-
-        document.getElementById(formId).addEventListener('submit', function (e) {
-            if (!hidden.value) {
-                e.preventDefault();
-                alert('Please select a customer from the list.');
-            }
-        });
-    }
-
-    document.getElementById('customer-filter').addEventListener('input', function () {
-        const q = this.value.toLowerCase();
-        document.querySelectorAll('.customer-row').forEach(row => {
-            const name = row.dataset.customerName;
-            const id   = row.dataset.customerId;
-            row.style.display = (name.includes(q) || id.includes(q)) ? '' : 'none';
-        });
-    });
+    wireCustomerFilter('customer-filter', '.customer-row');
 </script>
 {% endblock %}

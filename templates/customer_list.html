@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import customer_filter_input %}
 {% block title %}Customers — Payment Tracker{% endblock %}
 
 {% block head %}
@@ -19,6 +20,7 @@
 <h1>Customers</h1>
 <a href="/add_customer"><button>+ Add Customer</button></a>
 <br><br>
+{{ customer_filter_input('customer-filter') }}
 
 <table border="1">
     <thead>
@@ -32,7 +34,7 @@
     </thead>
     <tbody>
         {% for customer in customers %}
-        <tr data-id="{{ customer.id }}">
+        <tr data-id="{{ customer.id }}" data-customer-id="{{ customer.id }}" data-customer-name="{{ customer.name | lower }}">
             <td>{{ customer.id }}</td>
             <td class="cell-name"><a href="/customers/{{ customer.id }}">{{ customer.name }}</a></td>
             <td class="cell-rate">{{ customer.rate }}</td>
@@ -87,6 +89,8 @@
 
 {% block scripts %}
 <script>
+    wireCustomerFilter('customer-filter', 'tbody tr:not(.inactive-row)');
+
     document.querySelector('tbody').addEventListener('click', function (e) {
         const row = e.target.closest('tr');
         if (!row) return;

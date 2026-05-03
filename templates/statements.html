@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% from 'macros.html' import customer_filter_input %}
 {% block title %}Statements — {{ month_name }} {{ year }}{% endblock %}
 
 {% block head %}
@@ -33,9 +34,11 @@
 </div>
 
 {# Screen: summary table #}
+{{ customer_filter_input('customer-filter') }}
 <table class="no-print">
     <thead>
         <tr>
+            <th>ID</th>
             <th>Customer</th>
             <th class="amount">Rate</th>
             <th class="amount">Ending Balance</th>
@@ -43,7 +46,8 @@
     </thead>
     <tbody>
         {% for s in statements %}
-        <tr>
+        <tr data-customer-id="{{ s.customer.id }}" data-customer-name="{{ s.customer.name | lower }}">
+            <td>{{ s.customer.id }}</td>
             <td><a href="/customers/{{ s.customer.id }}/statement?month={{ month_str }}">{{ s.customer.name }}</a></td>
             <td class="amount">${{ s.customer.rate }}/mo</td>
             <td class="amount">${{ "%.2f"|format(s.data.ending_balance) }}</td>
@@ -108,6 +112,8 @@
 
 {% block scripts %}
 <script>
+    wireCustomerFilter('customer-filter', '.no-print tbody tr');
+
     function goToMonth() {
         const val = document.getElementById('month-picker').value;
         if (val) window.location = `/statements?month=${val}`;
