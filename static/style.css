@@ -1,3 +1,10 @@
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ddd; }
+th { background: #f4f4f4; }
+td input { width: 100%; box-sizing: border-box; }
+.amount { text-align: right; }
+.print-page .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
+
 .customer-search-input {
     padding: 6px 10px;
     margin-bottom: 12px;

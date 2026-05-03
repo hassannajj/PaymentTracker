@@ -4,7 +4,6 @@
 
 {% block head %}
 <style>
-    td input[type="text"], td input[type="number"] { width: 100%; box-sizing: border-box; }
     .btn-edit, .btn-save, .btn-cancel, .btn-deactivate, .btn-restore { cursor: pointer; }
     .edit-controls { display: none; }
     tr.editing .edit-controls { display: inline; }
@@ -22,7 +21,7 @@
 <br><br>
 {{ customer_filter_input('customer-filter') }}
 
-<table border="1">
+<table>
     <thead>
         <tr>
             <th>ID</th>
@@ -57,7 +56,7 @@
 <div class="inactive-section">
     <h2 onclick="toggleInactive(this)">▶ Inactive customers ({{ inactive_customers | length }})</h2>
     <div id="inactive-list" style="display:none;">
-        <table border="1">
+        <table>
             <thead>
                 <tr>
                     <th>ID</th>

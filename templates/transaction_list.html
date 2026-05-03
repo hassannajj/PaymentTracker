@@ -3,7 +3,6 @@
 
 {% block head %}
 <style>
-    td input { width: 100%; box-sizing: border-box; }
     .btn-edit, .btn-save, .btn-cancel, .btn-delete { cursor: pointer; }
     .edit-controls { display: none; }
     tr.editing .edit-controls { display: inline; }
@@ -16,7 +15,7 @@
 <h1>Transactions</h1>
 <a href="/add_transaction"><button>+ Add Transaction</button></a>
 <br><br>
-<table border="1">
+<table>
     <thead>
         <tr>
             <th>ID</th>

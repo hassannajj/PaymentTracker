@@ -5,19 +5,12 @@
 {% block head %}
 <style>
     .controls { margin-bottom: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ddd; }
-    th { background: #f4f4f4; }
-    .amount { text-align: right; }
-
-    /* Print-only full statements */
     .print-only { display: none; }
     @media print {
         .print-only { display: block; }
         .print-page h2 { margin-bottom: 4px; }
         .print-page .period { color: #555; margin-top: 0; font-size: 0.95em; }
         .print-page table { font-size: 0.9em; }
-        .print-page .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
     }
 </style>
 {% endblock %}
