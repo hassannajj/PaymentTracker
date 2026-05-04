@@ -1,6 +1,33 @@
 {% extends 'base.html' %}
 {% block title %}Home — Payment Tracker{% endblock %}
 {% block content %}
-<h1>Welcome to Payment Tracker</h1>
-<p>Use the navigation bar above to get started.</p>
+<h1>Payment Tracker</h1>
+
+<div class="section">
+    <h2>Database</h2>
+    <p style="margin-top:0; color:var(--text-muted);">Active: <strong style="color:var(--text);">{{ current_db }}</strong></p>
+
+    {% if db_files %}
+    <div class="db-list">
+        {% for f in db_files %}
+        <form method="post" action="/select_db" style="margin:0;">
+            <input type="hidden" name="db_name" value="{{ f }}">
+            <button type="submit" class="db-row{% if f == current_db %} db-row-active{% endif %}">
+                <span>{{ f }}</span>
+                {% if f == current_db %}<span class="badge-paid">Active</span>{% endif %}
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="divider" style="margin:16px 0;">NEW</div>
+
+    <form method="post" action="/select_db" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+        <input type="text" name="db_name" placeholder="e.g. 2025.db"
+               pattern="[a-zA-Z0-9_\-]+\.db" title="Letters, numbers, hyphens, underscores — must end in .db"
+               style="width:220px;" required>
+        <input type="submit" value="Create / Open">
+    </form>
+</div>
 {% endblock %}

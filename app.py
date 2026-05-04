@@ -3,6 +3,9 @@ from markupsafe import escape
 from datetime import datetime, date
 import calendar as cal_module
 import os
+import re
+
+_SAFE_DB_NAME = re.compile(r'^[a-zA-Z0-9_\-]+\.db$')
 
 import db
 import repository
@@ -22,9 +25,31 @@ with app.app_context():
 def close_connection(exception):
     db.close_db()
 
+@app.context_processor
+def inject_current_db():
+    name = os.path.basename(session.get('db_path', 'data/data.db'))
+    return {'current_db_name': name}
+
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        db_files = sorted(f for f in os.listdir('data') if f.endswith('.db'))
+    except OSError:
+        db_files = []
+    current = os.path.basename(session.get('db_path', 'data/data.db'))
+    return render_template('index.html', db_files=db_files, current_db=current)
+
+@app.route('/select_db', methods=['POST'])
+def select_db():
+    db_name = request.form.get('db_name', '').strip()
+    if not _SAFE_DB_NAME.match(db_name):
+        flash('Invalid database name. Use only letters, numbers, hyphens, and underscores, ending in .db')
+        return redirect(url_for('index'))
+    session['db_path'] = f'data/{db_name}'
+    repository.create_customers_table()
+    repository.create_transactions_table()
+    repository.run_migrations()
+    return redirect(url_for('index'))
 
 
 @app.route('/customers')

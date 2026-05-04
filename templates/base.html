@@ -12,6 +12,7 @@
     </script>
     <nav>
         <a class="brand" href="/">Payment Tracker</a>
+        <span class="db-indicator">{{ current_db_name }}</span>
         <a href="/customers"    {% if request.path.startswith('/customers') %}class="active"{% endif %}>Customers</a>
         <a href="/transactions" {% if request.path.startswith('/transactions') %}class="active"{% endif %}>Transactions</a>
         <a href="/add_payment"  {% if request.path.startswith('/add_payment') or request.path.startswith('/review_checks') %}class="active"{% endif %}>Add Payment</a>

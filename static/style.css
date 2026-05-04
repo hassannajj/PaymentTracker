@@ -358,6 +358,51 @@ body.dark .badge-unpaid { background: #450a0a; color: #fca5a5; }
 .summary-label { font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .summary-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
 
+/* ── DB selector (homepage) ── */
+.db-indicator {
+    font-size: 0.72em;
+    color: var(--nav-text);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-left: 4px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.db-list {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    background: var(--input-bg);
+}
+
+.db-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    cursor: pointer;
+    text-align: left;
+    font-size: 1em;
+    color: var(--text);
+    font-weight: normal;
+    min-height: unset;
+    transition: background 0.1s;
+}
+.db-row:last-child { border-bottom: none; }
+.db-row:hover { background: rgba(37,99,235,0.05); filter: none; }
+body.dark .db-row:hover { background: rgba(96,165,250,0.08); }
+.db-row-active { font-weight: 600; }
+
 /* ── Print ── */
 @media print {
     nav, .no-print { display: none !important; }
