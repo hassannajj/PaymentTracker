@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Monthly Charges — {{ month_name }} {{ year }}{% endblock %}
+
+{% block content %}
+<div style="display:flex; align-items:baseline; gap:16px; margin-bottom:8px;">
+    <h1 style="margin:0;">Monthly Charges — {{ month_name }} {{ year }}</h1>
+    <a href="{{ url_for('show_transactions') }}" class="link-sm">← Back to Transactions</a>
+</div>
+
+<div style="display:flex; gap:16px; margin-bottom:20px;" class="no-print">
+    <a href="/monthly_charges/{{ prev_year }}/{{ '%02d'|format(prev_month) }}" class="link-sm">← Prev month</a>
+    <a href="/monthly_charges/{{ next_year }}/{{ '%02d'|format(next_month) }}" class="link-sm">Next month →</a>
+</div>
+
+{# Summary bar #}
+<div class="summary-bar">
+    <div class="summary-stat">
+        <span class="summary-value">{{ total_count }}</span>
+        <span class="summary-label">Charged</span>
+    </div>
+    <div class="summary-stat">
+        <span class="summary-value" style="color:#166534;">{{ paid_count }}</span>
+        <span class="summary-label">Paid</span>
+    </div>
+    <div class="summary-stat">
+        <span class="summary-value" style="color:#991b1b;">{{ total_count - paid_count }}</span>
+        <span class="summary-label">Unpaid</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-stat">
+        <span class="summary-value">${{ "%.2f"|format(total_charged) }}</span>
+        <span class="summary-label">Total charged</span>
+    </div>
+    <div class="summary-stat">
+        <span class="summary-value">${{ "%.2f"|format(total_collected) }}</span>
+        <span class="summary-label">Collected</span>
+    </div>
+    <div class="summary-stat">
+        <span class="summary-value">${{ "%.2f"|format(outstanding) }}</span>
+        <span class="summary-label">Outstanding</span>
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Status</th>
+            <th class="amount">Charged</th>
+            <th class="amount">Payment(s)</th>
+            <th>Payment Date(s)</th>
+            <th>Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in rows %}
+        {% set has_paid = row.payments | length > 0 %}
+        <tr>
+            <td><a href="/customers/{{ row.customer.id }}">{{ row.customer.name }}</a></td>
+            <td>
+                {% if has_paid %}
+                <span class="badge-paid">Paid</span>
+                {% else %}
+                <span class="badge-unpaid">Unpaid</span>
+                {% endif %}
+            </td>
+            <td class="amount">${{ "%.2f"|format(row.charge.amount) }}</td>
+            {% if has_paid %}
+            <td class="amount">
+                {% for p in row.payments %}
+                ${{ "%.2f"|format(p.amount) }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+            </td>
+            <td>
+                {% for p in row.payments %}
+                {{ p.date.strftime('%b %-d') }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+            </td>
+            <td>
+                {% for p in row.payments %}
+                {{ p.notes or '—' }}{% if not loop.last %}<br>{% endif %}
+                {% endfor %}
+            </td>
+            {% else %}
+            <td class="amount">—</td>
+            <td>—</td>
+            <td>—</td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

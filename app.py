@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, session, flash
 from markupsafe import escape
 from datetime import datetime, date
+import calendar as cal_module
 import os
 
 import db
@@ -93,10 +94,35 @@ def add_customer():
     return render_template('add_customer.html')
 
 
+def _iter_months(min_date_str: str, max_date_str: str):
+    """Yield (year, month) tuples from min to max date inclusive, one per month."""
+    y, m = int(min_date_str[:4]), int(min_date_str[5:7])
+    max_y, max_m = int(max_date_str[:4]), int(max_date_str[5:7])
+    while (y, m) <= (max_y, max_m):
+        yield (y, m)
+        m += 1
+        if m > 12:
+            m = 1
+            y += 1
+
+
 @app.route('/transactions')
 def show_transactions():
     transactions = repository.get_all_transactions()
-    return render_template('transaction_list.html', transactions=transactions)
+    date_range = repository.get_transaction_date_range()
+    months = []
+    if date_range:
+        charged_months = repository.get_months_with_monthly_charges()
+        months = [
+            {
+                "year": y, "month": m,
+                "label": f"{cal_module.month_name[m]} {y}",
+                "has_monthly_charge": (y, m) in charged_months,
+            }
+            for (y, m) in _iter_months(date_range[0], date_range[1])
+        ]
+        months.reverse()  # newest first
+    return render_template('transaction_list.html', transactions=transactions, months=months)
 
 @app.route('/transactions/<int:id>')
 def show_transaction(id: int):
@@ -274,6 +300,44 @@ def add_charge():
                 repository.add_transaction(transaction)
         return redirect(url_for('show_transactions'))
 
+@app.route('/monthly_charges/<int:year>/<int:month>')
+def show_monthly_charge_statement(year: int, month: int):
+    if month < 1 or month > 12:
+        return {"error": "Invalid month"}, 400
+    rows = repository.get_monthly_charge_statement(year, month)
+    if not rows:
+        flash(f"No monthly charges were run for {cal_module.month_name[month]} {year}.")
+        return redirect(url_for('show_transactions'))
+    total_charged   = sum(r["charge"].amount for r in rows)
+    total_collected = sum(p.amount for r in rows for p in r["payments"])
+    paid_count      = sum(1 for r in rows if r["payments"])
+    prev_y, prev_m = (year, month - 1) if month > 1 else (year - 1, 12)
+    next_y, next_m = (year, month + 1) if month < 12 else (year + 1, 1)
+    return render_template(
+        'monthly_charge_statement.html',
+        rows=rows, year=year, month=month,
+        month_name=cal_module.month_name[month],
+        total_charged=total_charged,
+        total_collected=total_collected,
+        outstanding=total_charged - total_collected,
+        paid_count=paid_count,
+        total_count=len(rows),
+        prev_year=prev_y, prev_month=prev_m,
+        next_year=next_y, next_month=next_m,
+    )
+
+
+@app.route('/api/monthly_charge_exists')
+def monthly_charge_exists():
+    month_str = request.args.get('month', '')
+    try:
+        year, month = int(month_str[:4]), int(month_str[5:7])
+    except (ValueError, IndexError):
+        return {"error": "Invalid month format, expected YYYY-MM"}, 400
+    count = repository.has_monthly_charges_for_month(year, month)
+    return {"exists": count > 0, "count": count}
+
+
 @app.route('/statements')
 def show_statements():
     today = date.today()
@@ -287,8 +351,7 @@ def show_statements():
     for customer in customers:
         data = repository.get_statement_data(customer.id, year, month)
         statements.append({"customer": customer, "data": data})
-    import calendar as cal
-    month_name = cal.month_name[month]
+    month_name = cal_module.month_name[month]
     return render_template('statements.html', statements=statements,
                            month_str=month_str, year=year, month=month,
                            month_name=month_name)
@@ -305,8 +368,7 @@ def show_customer_statement(id: int):
     except (ValueError, IndexError):
         year, month = today.year, today.month
     data = repository.get_statement_data(id, year, month)
-    import calendar as cal
-    month_name = cal.month_name[month]
+    month_name = cal_module.month_name[month]
     return render_template('customer_statement.html', customer=customer,
                            data=data, month_str=month_str,
                            month_name=month_name, year=year)

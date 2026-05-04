@@ -254,3 +254,102 @@ def get_statement_data(customer_id: int, year: int, month: int) -> dict:
         "total_payments": total_payments,
         "ending_balance": ending_balance,
     }
+
+
+def get_transaction_date_range():
+    """Returns (min_date_str, max_date_str) or None if no transactions exist."""
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("SELECT MIN(date), MAX(date) FROM transactions")
+    row = cursor.fetchone()
+    if row[0] is None:
+        return None
+    return (row[0], row[1])
+
+
+def get_months_with_monthly_charges():
+    """Returns a set of (year, month) tuples that have at least one monthly charge transaction."""
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    cursor.execute("""
+        SELECT DISTINCT CAST(substr(date, 1, 4) AS INTEGER) AS y,
+                        CAST(substr(date, 6, 2) AS INTEGER) AS m
+        FROM transactions
+        WHERE LOWER(notes) = 'monthly charge'
+    """)
+    return {(row["y"], row["m"]) for row in cursor.fetchall()}
+
+
+def get_monthly_charge_statement(year: int, month: int) -> list:
+    """Returns one dict per customer charged that month.
+
+    Each dict: { 'customer': Customer, 'charge': Transaction, 'payments': [Transaction] }
+    Payments are matched by statement_month='YYYY-MM' when set, falling back to
+    payments whose date falls within the month for older records.
+    """
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+
+    period_start = f"{year}-{month:02d}-01"
+    last_day = calendar.monthrange(year, month)[1]
+    period_end = f"{year}-{month:02d}-{last_day:02d} 23:59:59"
+    month_str = f"{year}-{month:02d}"
+
+    cursor.execute("""
+        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month
+        FROM transactions
+        WHERE LOWER(notes) = 'monthly charge' AND date >= ? AND date <= ?
+        ORDER BY date
+    """, (period_start, period_end))
+    charge_rows = cursor.fetchall()
+
+    if not charge_rows:
+        return []
+
+    customer_ids = list({row["customer_id"] for row in charge_rows})
+    placeholders = ",".join("?" * len(customer_ids))
+
+    # Payments tagged to this statement month, OR (legacy) payments whose date falls in the month
+    cursor.execute(f"""
+        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month
+        FROM transactions
+        WHERE LOWER(transaction_type) = 'payment'
+          AND customer_id IN ({placeholders})
+          AND (statement_month = ? OR (statement_month IS NULL AND date >= ? AND date <= ?))
+        ORDER BY date
+    """, (*customer_ids, month_str, period_start, period_end))
+    payment_rows = cursor.fetchall()
+
+    payments_by_customer: dict = {}
+    for row in payment_rows:
+        cid = row["customer_id"]
+        t = Transaction(row["id"], cid, row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"])
+        payments_by_customer.setdefault(cid, []).append(t)
+
+    cursor.execute(f"SELECT id, name, rate, is_active FROM customers WHERE id IN ({placeholders})", customer_ids)
+    customers_by_id = {row["id"]: Customer(row["id"], row["name"], row["rate"], row["is_active"]) for row in cursor.fetchall()}
+
+    result = []
+    for row in charge_rows:
+        cid = row["customer_id"]
+        result.append({
+            "customer": customers_by_id.get(cid),
+            "charge": Transaction(row["id"], cid, row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"]),
+            "payments": payments_by_customer.get(cid, []),
+        })
+
+    return result
+
+
+def has_monthly_charges_for_month(year: int, month: int) -> int:
+    """Returns the count of monthly charge transactions for the given month."""
+    db_conn = db.get_db()
+    cursor = db_conn.cursor()
+    period_start = f"{year}-{month:02d}-01"
+    last_day = calendar.monthrange(year, month)[1]
+    period_end = f"{year}-{month:02d}-{last_day:02d} 23:59:59"
+    cursor.execute("""
+        SELECT COUNT(*) FROM transactions
+        WHERE LOWER(notes) = 'monthly charge' AND date >= ? AND date <= ?
+    """, (period_start, period_end))
+    return cursor.fetchone()[0]

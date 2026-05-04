@@ -288,6 +288,76 @@ tr.inactive-row td { color: var(--text-muted); }
 }
 #dark-toggle:hover { color: #fff; filter: none; }
 
+/* ── Monthly charges section (transaction list) ── */
+.monthly-statements { margin-bottom: 40px; }
+.monthly-statements h2 { margin-bottom: 12px; }
+
+.month-list {
+    max-height: 280px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    margin-bottom: 8px;
+}
+.month-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    cursor: pointer;
+    text-align: left;
+    font-size: 1em;
+    color: var(--text);
+    font-weight: normal;
+    min-height: unset;
+    transition: background 0.1s;
+}
+.month-row:last-child { border-bottom: none; }
+.month-row:hover:not(.uncharged) { background: rgba(37,99,235,0.05); filter: none; }
+body.dark .month-row:hover:not(.uncharged) { background: rgba(96,165,250,0.08); }
+.month-row.uncharged { opacity: 0.5; cursor: default; }
+
+.badge-charged  { font-size: 0.78em; padding: 3px 10px; border-radius: 12px; font-weight: 600; background: #dbeafe; color: #1e40af; }
+.badge-uncharged{ font-size: 0.78em; padding: 3px 10px; border-radius: 12px; font-weight: 500; background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+body.dark .badge-charged { background: #1e3a5f; color: #93c5fd; }
+
+/* ── Paid / Unpaid badges (monthly statement page) ── */
+.badge-paid   { font-size: 0.82em; padding: 3px 10px; border-radius: 12px; font-weight: 600; background: #dcfce7; color: #166534; }
+.badge-unpaid { font-size: 0.82em; padding: 3px 10px; border-radius: 12px; font-weight: 600; background: #fee2e2; color: #991b1b; }
+body.dark .badge-paid   { background: #14532d; color: #86efac; }
+body.dark .badge-unpaid { background: #450a0a; color: #fca5a5; }
+
+/* ── Summary bar (monthly statement page) ── */
+.summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+.summary-value { font-size: 1.4em; font-weight: 700; line-height: 1.1; }
+.summary-label { font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.summary-divider { width: 1px; background: var(--border); align-self: stretch; margin: 0 4px; }
+
 /* ── Print ── */
 @media print {
     nav, .no-print { display: none !important; }

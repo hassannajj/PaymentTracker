@@ -3,6 +3,32 @@
 
 {% block content %}
 <h1>Transactions</h1>
+
+{% if months %}
+<section class="monthly-statements no-print">
+    <h2>Monthly Charges</h2>
+    <input type="text" id="month-search" class="customer-search-input" placeholder="Search month (e.g. January 2025)">
+    <div class="month-list">
+        {% for m in months %}
+        <button
+            class="month-row{% if not m.has_monthly_charge %} uncharged{% endif %}"
+            data-month-label="{{ m.label | lower }}"
+            {% if m.has_monthly_charge %}
+            onclick="window.location='/monthly_charges/{{ m.year }}/{{ '%02d' % m.month }}'"
+            {% endif %}>
+            <span>{{ m.label }}</span>
+            {% if m.has_monthly_charge %}
+            <span class="badge-charged">Charged</span>
+            {% else %}
+            <span class="badge-uncharged">No charges</span>
+            {% endif %}
+        </button>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<h2>All Transactions</h2>
 <table>
     <thead>
         <tr>
@@ -39,6 +65,16 @@
 
 {% block scripts %}
 <script>
+    const monthSearch = document.getElementById('month-search');
+    if (monthSearch) {
+        monthSearch.addEventListener('input', function () {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('.month-row').forEach(row => {
+                row.style.display = row.dataset.monthLabel.includes(q) ? '' : 'none';
+            });
+        });
+    }
+
     document.querySelector('tbody').addEventListener('click', function (e) {
         const row = e.target.closest('tr');
         if (e.target.classList.contains('btn-edit'))   enterEditMode(row);

@@ -52,6 +52,7 @@
             </div>
             {% endfor %}
         </div>
+        <div id="monthly-warning" class="flash-error" style="display:none;"></div>
         <input type="submit" name="monthly_charges" value="Add Monthly Charges">
     </form>
 </div>
@@ -61,5 +62,24 @@
 <script>
     wireCustomerSearch('customer_search_extra', 'list_of_customers_extra', 'customer_id_extra', 'extra-form');
     wireCustomerFilter('customer-filter', '.customer-row');
+
+    document.getElementById('date_monthly').addEventListener('change', function () {
+        const val = this.value;
+        if (!val) { document.getElementById('monthly-warning').style.display = 'none'; return; }
+        const ym = val.slice(0, 7);
+        fetch(`/api/monthly_charge_exists?month=${ym}`)
+            .then(r => r.json())
+            .then(data => {
+                const w = document.getElementById('monthly-warning');
+                if (data.count > 0) {
+                    const d = new Date(val + 'T00:00:00');
+                    const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+                    w.textContent = `Warning: Monthly charges were already run for ${label} (${data.count} customer${data.count === 1 ? '' : 's'} charged). Submitting again will charge them a second time.`;
+                    w.style.display = 'block';
+                } else {
+                    w.style.display = 'none';
+                }
+            });
+    });
 </script>
 {% endblock %}
