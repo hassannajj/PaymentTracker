@@ -122,7 +122,10 @@ def show_transactions():
             for (y, m) in _iter_months(date_range[0], date_range[1])
         ]
         months.reverse()  # newest first
-    return render_template('transaction_list.html', transactions=transactions, months=months)
+    customers = repository.get_all_customers(active_only=False)
+    customers_by_id = {c.id: c.name for c in customers}
+    return render_template('transaction_list.html', transactions=transactions, months=months,
+                           customers_by_id=customers_by_id)
 
 @app.route('/transactions/<int:id>')
 def show_transaction(id: int):
@@ -262,7 +265,8 @@ def commit_checks():
 @app.route('/add_charge', methods=['GET'])
 def add_charge_form():
     customers = repository.get_all_customers()
-    return render_template('add_charge.html', customers=customers)
+    return render_template('add_charge.html', customers=customers,
+                           current_month=date.today().strftime('%Y-%m'))
 
 @app.route('/add_charge', methods=['POST'])
 def add_charge():
@@ -271,12 +275,13 @@ def add_charge():
         customer_id = request.form.get('customer_id_extra')
         amount = request.form.get('amount_extra')
         notes = request.form.get('notes_extra', '')
+        charge_date = request.form.get('date_extra')
         transaction = repository.Transaction(
             id=None,
             customer_id=int(customer_id),
             transaction_type='Charge',
             amount=float(amount),
-            date=date.today().strftime('%Y-%m-%d'),
+            date=charge_date,
             notes=notes
         )
         repository.add_transaction(transaction)
@@ -284,7 +289,8 @@ def add_charge():
 
     # Monthly charges — bulk, respecting checkbox selections
     if 'monthly_charges' in request.form:
-        today = date.today().strftime('%Y-%m-%d')
+        month_monthly = request.form.get('month_monthly', date.today().strftime('%Y-%m'))
+        charge_date = f"{month_monthly}-01"
         customers = repository.get_all_customers()
         for customer in customers:
             if request.form.get(f'customer_{customer.id}'):
@@ -293,7 +299,7 @@ def add_charge():
                     customer_id=customer.id,
                     transaction_type='Charge',
                     amount=customer.rate,
-                    date=today,
+                    date=charge_date,
                     notes='Monthly charge'
                 )
                 repository.add_transaction(transaction)

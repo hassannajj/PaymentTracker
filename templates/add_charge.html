@@ -18,6 +18,10 @@
             <input type="number" step="0.01" id="amount_extra" name="amount_extra" required>
         </p>
         <p>
+            <label class="field" for="date_extra">Date</label>
+            <input type="date" id="date_extra" name="date_extra" required>
+        </p>
+        <p>
             <label class="field" for="notes_extra">Description</label>
             <input type="text" id="notes_extra" name="notes_extra" placeholder="e.g. Filter replacement">
         </p>
@@ -31,6 +35,10 @@
 <div class="section">
     <h2>Monthly Charges</h2>
     <form method="post">
+        <p>
+            <label class="field" for="month_monthly">For Month</label>
+            <input type="month" id="month_monthly" name="month_monthly" value="{{ current_month }}" required>
+        </p>
         <p>
             <strong>Customers</strong> <small style="color:#888;">(uncheck to skip)</small>
         </p>
@@ -55,20 +63,24 @@
     wireCustomerSearch('customer_search_extra', 'list_of_customers_extra', 'customer_id_extra', 'extra-form');
     wireCustomerFilter('customer-filter', '.customer-row');
 
-    // Check on page load whether this month already has charges
-    (function () {
-        const today = new Date();
-        const ym = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0');
+    function checkMonthlyWarning(ym) {
         fetch(`/api/monthly_charge_exists?month=${ym}`)
             .then(r => r.json())
             .then(data => {
+                const w = document.getElementById('monthly-warning');
                 if (data.count > 0) {
-                    const label = today.toLocaleString('default', { month: 'long', year: 'numeric' });
-                    const w = document.getElementById('monthly-warning');
+                    const [y, m] = ym.split('-');
+                    const label = new Date(y, m - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
                     w.textContent = `Warning: Monthly charges were already run for ${label} (${data.count} customer${data.count === 1 ? '' : 's'} charged). Submitting again will charge them a second time.`;
                     w.style.display = 'block';
+                } else {
+                    w.style.display = 'none';
                 }
             });
-    })();
+    }
+
+    const monthInput = document.getElementById('month_monthly');
+    monthInput.addEventListener('change', () => checkMonthlyWarning(monthInput.value));
+    if (monthInput.value) checkMonthlyWarning(monthInput.value);
 </script>
 {% endblock %}

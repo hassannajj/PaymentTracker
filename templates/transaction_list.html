@@ -32,7 +32,7 @@
 <table>
     <thead>
         <tr>
-            <th>Customer ID</th>
+            <th>Customer</th>
             <th>Type</th>
             <th>Amount ($)</th>
             <th>Date</th>
@@ -43,7 +43,7 @@
     <tbody>
         {% for t in transactions %}
         <tr data-id="{{ t.id }}">
-            <td>{{ t.customer_id }}</td>
+            <td>{{ t.customer_id }} — {{ customers_by_id.get(t.customer_id, '?') }}</td>
             <td class="type-{{ t.transaction_type | lower }}">{{ t.transaction_type }}</td>
             <td class="cell-amount">{{ t.amount }}</td>
             <td class="cell-date">{{ t.date.strftime('%Y-%m-%d') }}</td>
