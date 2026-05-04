@@ -315,7 +315,7 @@ def show_monthly_charge_statement(year: int, month: int):
         return redirect(url_for('show_transactions'))
     total_charged   = sum(r["charge"].amount for r in rows)
     total_collected = sum(p.amount for r in rows for p in r["payments"])
-    paid_count      = sum(1 for r in rows if r["payments"])
+    paid_count      = sum(1 for r in rows if sum(p.amount for p in r["payments"]) >= r["charge"].amount)
     prev_y, prev_m = (year, month - 1) if month > 1 else (year - 1, 12)
     next_y, next_m = (year, month + 1) if month < 12 else (year + 1, 1)
     return render_template(

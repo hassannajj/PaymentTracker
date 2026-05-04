@@ -54,7 +54,8 @@
     </thead>
     <tbody>
         {% for row in rows %}
-        {% set has_paid = row.payments | length > 0 %}
+        {% set total_paid = row.payments | sum(attribute='amount') %}
+        {% set has_paid = total_paid >= row.charge.amount %}
         <tr>
             <td><a href="/customers/{{ row.customer.id }}">{{ row.customer.name }}</a></td>
             <td>
@@ -65,11 +66,15 @@
                 {% endif %}
             </td>
             <td class="amount">${{ "%.2f"|format(row.charge.amount) }}</td>
-            {% if has_paid %}
+            {% if row.payments %}
             <td class="amount">
                 {% for p in row.payments %}
                 ${{ "%.2f"|format(p.amount) }}{% if not loop.last %}<br>{% endif %}
                 {% endfor %}
+                {% if row.payments | length > 1 %}
+                <hr style="margin:4px 0; border-color:#ccc;">
+                <strong>${{ "%.2f"|format(total_paid) }}</strong>
+                {% endif %}
             </td>
             <td>
                 {% for p in row.payments %}
