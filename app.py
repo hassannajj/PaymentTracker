@@ -167,7 +167,7 @@ def add_payment():
     if 'cash_payment' in request.form:
         customer_id = request.form.get('customer_id_cash')
         amount = request.form.get('amount_cash')
-        payment_date = request.form.get('date_cash')
+        payment_date = date.today().strftime('%Y-%m-%d')
         notes = request.form.get('notes_cash', '')
         statement_month = request.form.get('statement_month_cash', '').strip() or None
         if statement_month:
@@ -199,7 +199,7 @@ def add_payment():
             'customer_id': int(customer_id) if customer_id else None,
             'amount': float(amount) if amount else None,
             'check_number': check_number,
-            'date': None,
+            'date': date.today().strftime('%Y-%m-%d'),
             'memo': None,
             'notes': f'Check #{check_number}' if check_number else '',
         }
