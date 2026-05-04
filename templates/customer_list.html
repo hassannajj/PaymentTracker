@@ -2,19 +2,6 @@
 {% from 'macros.html' import customer_filter_input %}
 {% block title %}Customers — Payment Tracker{% endblock %}
 
-{% block head %}
-<style>
-    .btn-edit, .btn-save, .btn-cancel, .btn-deactivate, .btn-restore { cursor: pointer; }
-    .edit-controls { display: none; }
-    tr.editing .edit-controls { display: inline; }
-    tr.editing .btn-edit { display: none; }
-    .error-msg { color: red; font-size: 0.85em; }
-    .inactive-section { margin-top: 32px; }
-    .inactive-section h2 { font-size: 1em; color: #888; cursor: pointer; user-select: none; }
-    tr.inactive-row td { color: #aaa; }
-</style>
-{% endblock %}
-
 {% block content %}
 <h1>Customers</h1>
 <a href="/add_customer"><button>+ Add Customer</button></a>
@@ -42,7 +29,7 @@
                 <button class="btn-edit">Edit</button>
                 <span class="edit-controls">
                     <button class="btn-save">Save</button>
-                    <button class="btn-deactivate">Deactivate</button>
+                    <button class="btn-deactivate btn-danger">Deactivate</button>
                     <button class="btn-cancel">Cancel</button>
                 </span>
                 <span class="error-msg"></span>

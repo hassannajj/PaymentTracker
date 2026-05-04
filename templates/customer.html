@@ -1,24 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}{{ customer.name }} — Payment Tracker{% endblock %}
 
-{% block head %}
-<style>
-    td input { width: 100%; box-sizing: border-box; }
-    .btn-edit, .btn-save, .btn-cancel, .btn-delete { cursor: pointer; }
-    .edit-controls { display: none; }
-    tr.editing .edit-controls { display: inline; }
-    tr.editing .btn-edit { display: none; }
-    .error-msg { color: red; font-size: 0.85em; }
-</style>
-{% endblock %}
-
 {% block content %}
 <h1>{{ customer.name }}</h1>
 <p>ID: {{ customer.id }}</p>
 <p>Balance: $<span id="balance">{{ balance }}</span></p>
 <p>Rate: ${{ customer.rate }}/month</p>
-<h2>Transactions &nbsp; <a href="/customers/{{ customer.id }}/statement" class="no-print" style="font-size:0.75em;">View Statement</a></h2>
-<table border="1">
+<h2>Transactions <a href="/customers/{{ customer.id }}/statement" class="link-sm no-print">View Statement</a></h2>
+<table>
     <thead>
         <tr>
             <th>ID</th>
@@ -33,7 +22,7 @@
         {% for t in transactions %}
         <tr data-id="{{ t.id }}" data-type="{{ t.transaction_type | lower }}">
             <td>{{ t.id }}</td>
-            <td>{{ t.transaction_type }}</td>
+            <td class="type-{{ t.transaction_type | lower }}">{{ t.transaction_type }}</td>
             <td class="cell-amount">{{ t.amount }}</td>
             <td class="cell-date">{{ t.date.strftime('%Y-%m-%d') }}</td>
             <td class="cell-notes">{{ t.notes }}</td>
@@ -41,7 +30,7 @@
                 <button class="btn-edit">Edit</button>
                 <span class="edit-controls">
                     <button class="btn-save">Save</button>
-                    <button class="btn-delete">Delete</button>
+                    <button class="btn-delete btn-danger">Delete</button>
                     <button class="btn-cancel">Cancel</button>
                 </span>
                 <span class="error-msg"></span>
@@ -89,25 +78,14 @@
 
     function deleteRow(row) {
         const id = row.dataset.id;
-        const confirmed = window.confirm(
-            `Delete transaction #${id}? This cannot be undone.`
-        );
-        if (!confirmed) return;
+        if (!window.confirm(`Delete transaction #${id}? This cannot be undone.`)) return;
 
         fetch(`/transactions/${id}`, { method: 'DELETE' })
         .then(res => {
-            if (res.ok) {
-                row.remove();
-                recalculateBalance();
-            } else {
-                res.json().then(data => {
-                    row.querySelector('.error-msg').textContent = data.error || 'Delete failed.';
-                });
-            }
+            if (res.ok) { row.remove(); recalculateBalance(); }
+            else res.json().then(data => { row.querySelector('.error-msg').textContent = data.error || 'Delete failed.'; });
         })
-        .catch(() => {
-            row.querySelector('.error-msg').textContent = 'Network error — transaction not deleted.';
-        });
+        .catch(() => { row.querySelector('.error-msg').textContent = 'Network error — transaction not deleted.'; });
     }
 
     function saveRow(row) {
@@ -116,10 +94,7 @@
         const date   = row.querySelector('.cell-date input').value;
         const notes  = row.querySelector('.cell-notes input').value;
 
-        const confirmed = window.confirm(
-            `Save changes to transaction #${id}?\n\nAmount: $${amount}\nDate: ${date}\nNotes: ${notes}`
-        );
-        if (!confirmed) return;
+        if (!window.confirm(`Save changes to transaction #${id}?\n\nAmount: $${amount}\nDate: ${date}\nNotes: ${notes}`)) return;
 
         fetch(`/transactions/${id}`, {
             method: 'PATCH',
@@ -128,10 +103,7 @@
         })
         .then(res => res.json().then(data => ({ ok: res.ok, data })))
         .then(({ ok, data }) => {
-            if (!ok) {
-                row.querySelector('.error-msg').textContent = data.error || 'Save failed.';
-                return;
-            }
+            if (!ok) { row.querySelector('.error-msg').textContent = data.error || 'Save failed.'; return; }
             row.querySelector('.cell-amount').textContent = data.amount;
             row.querySelector('.cell-date').textContent   = data.date;
             row.querySelector('.cell-notes').textContent  = data.notes;
@@ -139,9 +111,7 @@
             row.querySelector('.error-msg').textContent = '';
             recalculateBalance();
         })
-        .catch(() => {
-            row.querySelector('.error-msg').textContent = 'Network error — changes not saved.';
-        });
+        .catch(() => { row.querySelector('.error-msg').textContent = 'Network error — changes not saved.'; });
     }
 
     function recalculateBalance() {

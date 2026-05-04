@@ -2,44 +2,6 @@
 {% from 'macros.html' import customer_search_select, customer_filter_input %}
 {% block title %}Add Charge — Payment Tracker{% endblock %}
 
-{% block head %}
-<style>
-    .section {
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        padding: 20px 24px;
-        margin: 20px 0;
-        max-width: 480px;
-    }
-    .section h2 { margin-top: 0; }
-    .divider {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        max-width: 480px;
-        color: #888;
-        font-weight: bold;
-    }
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        border-top: 1px solid #ccc;
-    }
-    label.field { display: inline-block; width: 90px; }
-    .customer-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-    .customer-row .rate { color: #888; font-size: 0.9em; }
-    .customer-list {
-        max-height: 220px;
-        overflow-y: auto;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 6px 10px;
-        margin-bottom: 10px;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <h1>Add Charge</h1>
 

@@ -1,9 +1,11 @@
 # TODO
 
 System:
-- Maybe use SQLite since its easy app, with automatic backsups to S3 bucket or DigitalOcean spaces
-- 
+- Maybe use SQLite since its easy app (1 user), with automatic backsups to S3 bucket or DigitalOcean spaces
+- We might be using the AI check processor so that might take some time, so we don't want to use something that has short timeout limitations
 
+- [x] Use railway as a server
+- [ ] Set up Litestream for automatic SQLite backups to Cloudflare R2 or S3
 
 - Maybe when showing the rate of a customer's statement, show the rate at the time of the statement rather than the customer's rate right now
 
@@ -29,4 +31,4 @@ System:
 - [ ] Add charges to multiple specific customers at once (for one-off extras like filter, chlorine, repairs)
 
 ## Security / Config
-- [ ] Move `secret_key` in app.py out of source code and into .env
+- [x] Move `secret_key` in app.py out of source code and into .env

@@ -4,7 +4,7 @@
 <h1>Review Extracted Checks</h1>
 <p>Review and edit the extracted payments below. Check "Remove" for any entries you don't want to add.</p>
 <form method="post" action="/commit_checks">
-    <table border="1">
+    <table>
         <thead>
             <tr>
                 <th>Remove</th>
@@ -37,9 +37,9 @@
             {% endfor %}
         </tbody>
     </table>
-    <br>
-    <input type="submit" value="Commit All Payments">
-    &nbsp;
-    <a href="/add_payment">Cancel — Add New Payment</a>
+    <div style="margin-top: 16px; display: flex; align-items: center; gap: 16px;">
+        <input type="submit" value="Commit All Payments">
+        <a href="/add_payment" class="link-sm">Cancel — Add New Payment</a>
+    </div>
 </form>
 {% endblock %}

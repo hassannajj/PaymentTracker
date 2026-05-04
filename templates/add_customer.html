@@ -3,10 +3,14 @@
 {% block content %}
 <h1>Add Customer</h1>
 <form method="post">
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required><br><br>
-    <label for="rate">Monthly Rate ($):</label>
-    <input type="number" id="rate" name="rate" required><br><br>
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required style="max-width: 300px;">
+    </div>
+    <div class="form-group">
+        <label for="rate">Monthly Rate ($)</label>
+        <input type="number" id="rate" name="rate" required style="max-width: 300px;">
+    </div>
     <input type="submit" value="Add Customer">
 </form>
 {% endblock %}
