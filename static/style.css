@@ -1,14 +1,300 @@
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #ddd; }
-th { background: #f4f4f4; }
+/* ── Theme variables ── */
+:root {
+    --bg:           #f0f4f8;
+    --surface:      #ffffff;
+    --text:         #1a202c;
+    --text-muted:   #64748b;
+    --border:       #cbd5e1;
+    --link:         #2563eb;
+    --nav-bg:       #1e293b;
+    --nav-text:     #94a3b8;
+    --nav-hover:    #334155;
+    --nav-active:   #60a5fa;
+    --input-bg:     #ffffff;
+    --input-border: #94a3b8;
+    --btn-bg:       #f1f5f9;
+    --btn-text:     #1e293b;
+    --btn-border:   #cbd5e1;
+    --table-bg:     #ffffff;
+    --primary:      #2563eb;
+    --primary-text: #ffffff;
+    --primary-hover:#1d4ed8;
+}
+
+body.dark {
+    --bg:           #0f172a;
+    --surface:      #1e293b;
+    --text:         #f1f5f9;
+    --text-muted:   #94a3b8;
+    --border:       #334155;
+    --link:         #60a5fa;
+    --nav-bg:       #020617;
+    --nav-text:     #94a3b8;
+    --nav-hover:    #1e293b;
+    --nav-active:   #60a5fa;
+    --input-bg:     #1e293b;
+    --input-border: #475569;
+    --btn-bg:       #334155;
+    --btn-text:     #f1f5f9;
+    --btn-border:   #475569;
+    --table-bg:     #1e293b;
+    --primary:      #3b82f6;
+    --primary-text: #ffffff;
+    --primary-hover:#2563eb;
+}
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: sans-serif;
+    font-size: 20px;
+    line-height: 1.6;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.2s, color 0.2s;
+}
+
+a { color: var(--link); }
+
+/* ── Focus ring ── */
+:focus-visible {
+    outline: 3px solid var(--nav-active);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+/* ── Nav ── */
+nav {
+    background: var(--nav-bg);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+nav .brand {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 16px 16px;
+    text-decoration: none;
+    margin-right: 8px;
+}
+
+nav a {
+    color: var(--nav-text);
+    text-decoration: none;
+    padding: 16px 16px;
+    display: inline-block;
+    font-size: 1em;
+    font-weight: 500;
+}
+
+nav a:hover { color: #fff; background: var(--nav-hover); }
+nav a.active { color: #fff; border-bottom: 3px solid var(--nav-active); }
+
+/* ── Page ── */
+.page { padding: 32px; }
+
+/* ── Flash messages ── */
+.flash-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-left: 4px solid #dc2626;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+body.dark .flash-error {
+    background: #1f0a0a;
+    border-color: #7f1d1d;
+    border-left-color: #ef4444;
+    color: #fca5a5;
+}
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; background: var(--table-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+th { background: var(--bg); font-size: 0.9em; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
 td input { width: 100%; box-sizing: border-box; }
 .amount { text-align: right; }
-.print-page .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
+tbody tr:hover { background: rgba(37,99,235,0.04); }
+body.dark tbody tr:hover { background: rgba(96,165,250,0.07); }
+
+/* ── Transaction type colors ── */
+.type-charge  { color: #c0392b; font-weight: 500; }
+.type-payment { color: #1e8449; font-weight: 500; }
+body.dark .type-charge  { color: #ff8a80; }
+body.dark .type-payment { color: #6fcf97; }
+
+/* ── Buttons ── */
+button, input[type="submit"] {
+    font-size: 1em;
+    padding: 10px 20px;
+    min-height: 44px;
+    cursor: pointer;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: 1px solid var(--btn-border);
+    border-radius: 6px;
+    font-weight: 500;
+    transition: background 0.15s, filter 0.15s;
+}
+button:hover, input[type="submit"]:hover { filter: brightness(0.92); }
+
+input[type="submit"] {
+    background: var(--primary);
+    color: var(--primary-text);
+    border-color: var(--primary);
+}
+input[type="submit"]:hover { background: var(--primary-hover); filter: none; border-color: var(--primary-hover); }
+
+.btn-primary {
+    background: var(--primary);
+    color: var(--primary-text);
+    border-color: var(--primary);
+}
+.btn-primary:hover { background: var(--primary-hover); filter: none; border-color: var(--primary-hover); }
+
+.btn-secondary {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border-color: var(--btn-border);
+}
+
+.btn-danger {
+    background: #dc2626;
+    color: #fff;
+    border-color: #b91c1c;
+}
+.btn-danger:hover { background: #b91c1c; filter: none; border-color: #991b1b; }
+
+/* ── Inline edit controls ── */
+.error-msg { color: #c0392b; font-size: 0.85em; margin-left: 8px; }
+body.dark .error-msg { color: #ff8a80; }
+.edit-controls { display: none; }
+tr.editing .edit-controls { display: inline; }
+tr.editing .btn-edit { display: none; }
+
+/* ── Form inputs ── */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="month"],
+input[type="file"],
+select,
+.customer-search-input {
+    font-size: 1em;
+    padding: 10px 14px;
+    min-height: 44px;
+    background: var(--input-bg);
+    color: var(--text);
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+}
 
 .customer-search-input {
-    padding: 6px 10px;
-    margin-bottom: 12px;
-    width: 280px;
-    font-size: 0.95em;
+    margin-bottom: 16px;
+    width: 300px;
     box-sizing: border-box;
+}
+
+/* ── Form layout ── */
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+.form-group label { font-weight: 500; }
+
+label.field { display: inline-block; width: 100px; font-weight: 500; }
+
+/* ── Section cards (add_payment, add_charge) ── */
+.section {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin: 20px 0;
+    max-width: 520px;
+    background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+.section h2 { margin-top: 0; }
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    max-width: 520px;
+    color: var(--text-muted);
+    font-weight: bold;
+    margin: 4px 0;
+}
+.divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--border);
+}
+
+/* ── Inactive customers section ── */
+.inactive-section { margin-top: 32px; }
+.inactive-section h2 { font-size: 1em; color: var(--text-muted); cursor: pointer; user-select: none; }
+tr.inactive-row td { color: var(--text-muted); }
+
+/* ── Monthly charges customer list ── */
+.customer-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.customer-row .rate { color: var(--text-muted); font-size: 0.9em; }
+.customer-list {
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    background: var(--input-bg);
+}
+
+/* ── Small link (e.g. "View Statement" next to heading) ── */
+.link-sm {
+    font-size: 0.75em;
+    color: var(--link);
+    text-decoration: none;
+    margin-left: 12px;
+    font-weight: normal;
+}
+.link-sm:hover { text-decoration: underline; }
+
+/* ── Print summary table ── */
+.print-page .summary-table tr:last-child td { font-weight: bold; border-top: 2px solid #333; }
+
+/* ── Dark mode toggle ── */
+#dark-toggle {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 8px;
+    min-height: unset;
+    color: var(--nav-text);
+    font-size: 1.2em;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+#dark-toggle:hover { color: #fff; filter: none; }
+
+/* ── Print ── */
+@media print {
+    nav, .no-print { display: none !important; }
+    .page { padding: 0; }
+    .print-page { page-break-after: always; }
+    .print-only { display: block; }
+    .print-page h2 { margin-bottom: 4px; }
+    .print-page .period { color: #555; margin-top: 0; font-size: 0.95em; }
+    .print-page table { font-size: 0.9em; }
 }
