@@ -270,14 +270,13 @@ def add_charge():
     if 'extra_charge' in request.form:
         customer_id = request.form.get('customer_id_extra')
         amount = request.form.get('amount_extra')
-        date = request.form.get('date_extra')
         notes = request.form.get('notes_extra', '')
         transaction = repository.Transaction(
             id=None,
             customer_id=int(customer_id),
             transaction_type='Charge',
             amount=float(amount),
-            date=date,
+            date=date.today().strftime('%Y-%m-%d'),
             notes=notes
         )
         repository.add_transaction(transaction)
@@ -285,7 +284,7 @@ def add_charge():
 
     # Monthly charges — bulk, respecting checkbox selections
     if 'monthly_charges' in request.form:
-        date = request.form.get('date_monthly')
+        today = date.today().strftime('%Y-%m-%d')
         customers = repository.get_all_customers()
         for customer in customers:
             if request.form.get(f'customer_{customer.id}'):
@@ -294,7 +293,7 @@ def add_charge():
                     customer_id=customer.id,
                     transaction_type='Charge',
                     amount=customer.rate,
-                    date=date,
+                    date=today,
                     notes='Monthly charge'
                 )
                 repository.add_transaction(transaction)
