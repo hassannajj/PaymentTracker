@@ -6,7 +6,6 @@
 <table>
     <thead>
         <tr>
-            <th>ID</th>
             <th>Customer ID</th>
             <th>Type</th>
             <th>Amount ($)</th>
@@ -18,7 +17,6 @@
     <tbody>
         {% for t in transactions %}
         <tr data-id="{{ t.id }}">
-            <td>{{ t.id }}</td>
             <td>{{ t.customer_id }}</td>
             <td class="type-{{ t.transaction_type | lower }}">{{ t.transaction_type }}</td>
             <td class="cell-amount">{{ t.amount }}</td>
