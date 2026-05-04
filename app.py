@@ -132,7 +132,8 @@ def update_transaction(id: int):
 @app.route('/add_payment', methods=['GET'])
 def add_payment_form():
     customers = repository.get_all_customers()
-    return render_template('upload_checks.html', customers=customers)
+    default_month = session.get('last_statement_month', date.today().strftime('%Y-%m'))
+    return render_template('upload_checks.html', customers=customers, statement_month=default_month)
 
 @app.route('/add_payment', methods=['POST'])
 def add_payment():
@@ -140,15 +141,19 @@ def add_payment():
     if 'cash_payment' in request.form:
         customer_id = request.form.get('customer_id_cash')
         amount = request.form.get('amount_cash')
-        date = request.form.get('date_cash')
+        payment_date = request.form.get('date_cash')
         notes = request.form.get('notes_cash', '')
+        statement_month = request.form.get('statement_month_cash', '').strip() or None
+        if statement_month:
+            session['last_statement_month'] = statement_month
         transaction = repository.Transaction(
             id=None,
             customer_id=int(customer_id),
             transaction_type='Payment',
             amount=float(amount),
-            date=date,
-            notes=notes if notes else 'Cash payment'
+            date=payment_date,
+            notes=notes if notes else 'Cash payment',
+            statement_month=statement_month,
         )
         repository.add_transaction(transaction)
         return redirect(url_for('show_transactions'))
@@ -159,6 +164,10 @@ def add_payment():
         check_number = request.form.get('check_id', '')
         amount = request.form.get('amount')
         payer_name = request.form.get('customer_search', '')
+        statement_month = request.form.get('statement_month_manual', '').strip() or None
+        if statement_month:
+            session['last_statement_month'] = statement_month
+            session['pending_statement_month'] = statement_month
         check = {
             'payer_name': payer_name,
             'customer_id': int(customer_id) if customer_id else None,
@@ -178,6 +187,10 @@ def add_payment():
     if not files or all(f.filename == '' for f in files):
         flash('No files selected.')
         return redirect(url_for('add_payment_form'))
+    statement_month = request.form.get('statement_month_upload', '').strip() or None
+    if statement_month:
+        session['last_statement_month'] = statement_month
+        session['pending_statement_month'] = statement_month
     customers = repository.get_all_customers()
     try:
         extracted = check_processor.extract_checks_from_files(files, customers)
@@ -198,6 +211,7 @@ def review_checks():
 
 @app.route('/commit_checks', methods=['POST'])
 def commit_checks():
+    statement_month = session.get('pending_statement_month')
     transactions = []
     index = 0
     while f'customer_id_{index}' in request.form:
@@ -208,13 +222,15 @@ def commit_checks():
                 transaction_type='Payment',
                 amount=float(request.form[f'amount_{index}']),
                 date=request.form[f'date_{index}'],
-                notes=request.form.get(f'notes_{index}', '')
+                notes=request.form.get(f'notes_{index}', ''),
+                statement_month=statement_month,
             )
             transactions.append(t)
         index += 1
     if transactions:
         repository.batch_insert_transactions(transactions)
     session.pop('pending_checks', None)
+    session.pop('pending_statement_month', None)
     return redirect(url_for('show_transactions'))
 
 @app.route('/add_charge', methods=['GET'])
