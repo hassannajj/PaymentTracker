@@ -20,7 +20,7 @@ class Customer:
         return balance
 
 class Transaction:
-    def __init__(self, id, customer_id, transaction_type, amount, date, notes, statement_month=None):
+    def __init__(self, id, customer_id, transaction_type, amount, date, notes, statement_month=None, created_at=None):
         self.id = id # primary key for transactions
         self.customer_id = customer_id
         self.transaction_type = transaction_type # type: "Charge" or "Payment"
@@ -28,6 +28,7 @@ class Transaction:
         self.date = self._parse_date(date)
         self.notes = notes
         self.statement_month = statement_month  # "YYYY-MM", set on payments to tag which month they pay for
+        self.created_at = created_at  # auto-set at insert time, never user-supplied
 
     def _parse_date(self, date):
         if isinstance(date, datetime):
@@ -68,6 +69,11 @@ def run_migrations():
         pass  # column already exists
     try:
         db_conn.execute("ALTER TABLE transactions ADD COLUMN statement_month TEXT")
+        db_conn.commit()
+    except Exception:
+        pass  # column already exists
+    try:
+        db_conn.execute("ALTER TABLE transactions ADD COLUMN created_at TEXT")
         db_conn.commit()
     except Exception:
         pass  # column already exists
@@ -156,35 +162,36 @@ def reset_transaction_data():
 def get_all_transactions():
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes, statement_month FROM transactions")
+    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes, statement_month, created_at FROM transactions")
     rows = cursor.fetchall()
-    return [Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"]) for row in rows]
+    return [Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"], row["created_at"]) for row in rows]
 
 def get_transactions_for_customer(customer_id):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes, statement_month FROM transactions WHERE customer_id = ?", (customer_id,))
+    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes, statement_month, created_at FROM transactions WHERE customer_id = ?", (customer_id,))
     rows = cursor.fetchall()
-    return [Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"]) for row in rows]
+    return [Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"], row["created_at"]) for row in rows]
 
 def get_specific_transaction(transaction_id):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes, statement_month FROM transactions WHERE id = ?", (transaction_id,))
+    cursor.execute("SELECT id, customer_id, transaction_type, amount, date, notes, statement_month, created_at FROM transactions WHERE id = ?", (transaction_id,))
     row = cursor.fetchone()
     if row:
-        return Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"])
+        return Transaction(row["id"], row["customer_id"], row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"], row["created_at"])
     print(f"No transaction found with ID {transaction_id}.")
     return None
 
 def batch_insert_transactions(transactions: list):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     cursor.executemany(
-        "INSERT INTO transactions (customer_id, transaction_type, amount, date, notes, statement_month) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO transactions (customer_id, transaction_type, amount, date, notes, statement_month, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
         [
             (t.customer_id, t.transaction_type, t.amount,
-             t.date.strftime("%Y-%m-%d %H:%M:%S"), t.notes, t.statement_month)
+             t.date.strftime("%Y-%m-%d %H:%M:%S"), t.notes, t.statement_month, now)
             for t in transactions
         ]
     )
@@ -208,8 +215,12 @@ def update_transaction(transaction_id: int, amount: float, date: str, notes: str
 def add_transaction(transaction: Transaction):
     db_conn = db.get_db()
     cursor = db_conn.cursor()
-    cursor.execute("INSERT INTO transactions (customer_id, transaction_type, amount, date, notes, statement_month) VALUES (?, ?, ?, ?, ?, ?)",
-                   (transaction.customer_id, transaction.transaction_type, transaction.amount, transaction.date.strftime("%Y-%m-%d %H:%M:%S"), transaction.notes, transaction.statement_month))
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    cursor.execute(
+        "INSERT INTO transactions (customer_id, transaction_type, amount, date, notes, statement_month, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (transaction.customer_id, transaction.transaction_type, transaction.amount,
+         transaction.date.strftime("%Y-%m-%d %H:%M:%S"), transaction.notes, transaction.statement_month, now)
+    )
     db_conn.commit()
 
 def get_statement_data(customer_id: int, year: int, month: int) -> dict:
@@ -229,14 +240,14 @@ def get_statement_data(customer_id: int, year: int, month: int) -> dict:
     starting_balance = row[0] or 0.0
 
     cursor.execute("""
-        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month
+        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month, created_at
         FROM transactions
         WHERE customer_id = ? AND date >= ? AND date <= ?
         ORDER BY date
     """, (customer_id, period_start, period_end + " 23:59:59"))
     rows = cursor.fetchall()
     period_transactions = [
-        Transaction(r["id"], r["customer_id"], r["transaction_type"], r["amount"], r["date"], r["notes"], r["statement_month"])
+        Transaction(r["id"], r["customer_id"], r["transaction_type"], r["amount"], r["date"], r["notes"], r["statement_month"], r["created_at"])
         for r in rows
     ]
 
@@ -296,7 +307,7 @@ def get_monthly_charge_statement(year: int, month: int) -> list:
     month_str = f"{year}-{month:02d}"
 
     cursor.execute("""
-        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month
+        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month, created_at
         FROM transactions
         WHERE LOWER(notes) = 'monthly charge' AND date >= ? AND date <= ?
         ORDER BY date
@@ -311,7 +322,7 @@ def get_monthly_charge_statement(year: int, month: int) -> list:
 
     # Payments tagged to this statement month, OR (legacy) payments whose date falls in the month
     cursor.execute(f"""
-        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month
+        SELECT id, customer_id, transaction_type, amount, date, notes, statement_month, created_at
         FROM transactions
         WHERE LOWER(transaction_type) = 'payment'
           AND customer_id IN ({placeholders})
@@ -323,7 +334,7 @@ def get_monthly_charge_statement(year: int, month: int) -> list:
     payments_by_customer: dict = {}
     for row in payment_rows:
         cid = row["customer_id"]
-        t = Transaction(row["id"], cid, row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"])
+        t = Transaction(row["id"], cid, row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"], row["created_at"])
         payments_by_customer.setdefault(cid, []).append(t)
 
     cursor.execute(f"SELECT id, name, rate, is_active FROM customers WHERE id IN ({placeholders})", customer_ids)
@@ -334,7 +345,7 @@ def get_monthly_charge_statement(year: int, month: int) -> list:
         cid = row["customer_id"]
         result.append({
             "customer": customers_by_id.get(cid),
-            "charge": Transaction(row["id"], cid, row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"]),
+            "charge": Transaction(row["id"], cid, row["transaction_type"], row["amount"], row["date"], row["notes"], row["statement_month"], row["created_at"]),
             "payments": payments_by_customer.get(cid, []),
         })
 
